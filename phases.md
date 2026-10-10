@@ -721,12 +721,12 @@ Tasks:
 
 Exit checks:
 
-- [ ] `npm run check` exits 0
-- [ ] `npm test` passes; the parity test ran (not skipped)
-- [ ] `npm run build` exits 0
-- [ ] `npm run test:e2e` passes, including `flow.spec.ts` on desktop and phone
-- [ ] `parity/01-desktop-0-vanilla.png` and `parity/01-desktop-0-react.png` exist
-- [ ] `git status` shows no `public/film/` and no `parity/` files to commit
+- [x] `npm run check` exits 0
+- [x] `npm test` passes; the parity test ran (not skipped)
+- [x] `npm run build` exits 0
+- [x] `npm run test:e2e` passes, including `flow.spec.ts` on desktop and phone
+- [x] `parity/01-desktop-0-vanilla.png` and `parity/01-desktop-0-react.png` exist
+- [x] `git status` shows no `public/film/` and no `parity/` files to commit
 
 Commit: `feat(motion): add the DOM helpers, the logo source and the page-flow test`
 

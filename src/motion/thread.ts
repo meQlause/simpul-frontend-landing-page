@@ -1,6 +1,6 @@
+import { SVG_NS } from './dom';
 import { gsap, ScrollTrigger } from './gsap';
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
 const POINTS = '[data-thread-in], [data-thread-via], [data-thread-out]';
 
 export type ThreadColor = 'sage' | 'green';
