@@ -917,8 +917,8 @@ Particulars:
 
 Tasks: steps A to H. Extra exit checks:
 
-- [ ] The heap unit test passes with every assertion from `check-quiet.mjs`
-- [ ] The stage stays in view for the same scroll distance as in the vanilla page (parity stops)
+- [x] The heap unit test passes with every assertion from `check-quiet.mjs`
+- [x] The stage stays in view for the same scroll distance as in the vanilla page (parity stops)
 
 Commit: `feat(quiet): port section 6 to React`
 

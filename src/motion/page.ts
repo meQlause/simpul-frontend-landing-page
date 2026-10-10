@@ -21,6 +21,7 @@ function activate(
     }
     if (solo && !motion.id.startsWith(solo)) {
       root.hidden = true;
+      root.style.display = 'none'; // a section's own display rule would win over [hidden]
       return [];
     }
     return [[motion, root] as const];
@@ -46,6 +47,7 @@ function stub(active: Active, thread: Thread, carried: Carried): void {
 function unhide(page: HTMLElement): void {
   page.querySelectorAll<HTMLElement>('[data-section][hidden]').forEach((root) => {
     root.hidden = false;
+    root.style.display = '';
   });
   document.querySelector('.solo-note')?.remove();
 }

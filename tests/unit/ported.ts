@@ -6,4 +6,5 @@ export const PORTED: readonly string[] = [
   '03-turn',
   '04-how-it-works',
   '05-for-each-person',
+  '06-quiet-by-design',
 ];

@@ -1,0 +1,732 @@
+/* Quiet by design. Still: the five commitments beside one clean card on the thread.
+   With motion (.quiet[data-motion]): full screen. The stage stays in view (sticky, not pinned) while
+   the commitments scroll past; index.js throws the storm onto it and takes it apart. */
+.quiet {
+  z-index: 2;
+  background: var(--canvas);
+  overflow-x: clip;
+} /* above section 7, for the card it hands on */
+.quiet-body {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 0 clamp(28px, 5vw, 80px);
+  max-width: var(--width);
+  margin: 0 auto;
+}
+.quiet-head {
+  grid-column: 1;
+  grid-row: 1;
+}
+.quiet-stage {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  margin: 0;
+}
+.quiet-rules {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  gap: 28px;
+  margin-top: 44px;
+}
+.quiet-kicker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.quiet .eyebrow {
+  margin: 0;
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.quiet-chapter {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--green);
+  white-space: pre;
+}
+.quiet-title {
+  margin-top: clamp(22px, 4vh, 44px);
+  font-size: clamp(32px, 3.4vw, 50px);
+}
+.quiet-lead {
+  max-width: 34ch;
+}
+
+.quiet-rule {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 16px;
+  align-items: start;
+}
+.quiet-icon {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: var(--mint);
+  color: var(--green-dark);
+  transition:
+    background-color 0.5s,
+    color 0.5s;
+}
+.quiet-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.quiet-rule h3 {
+  font: 700 clamp(18px, 1.5vw, 22px)/1.25 var(--font-title);
+  letter-spacing: -0.02em;
+  color: var(--green-dark);
+}
+.quiet-rule p {
+  max-width: 40ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #5d6f63;
+}
+
+/* The stage: a board the thread passes behind. A fine grid of dots gives it a surface, fading
+   towards its edges; a count in its corner says how many notifications are on it right now. */
+.quiet-panel {
+  --noise: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 360px;
+  border: 1.5px solid color-mix(in srgb, var(--danger) calc(var(--noise) * 46%), #1764481f);
+  border-radius: 26px;
+  background: var(--mint);
+  box-shadow:
+    0 40px 80px -60px #163f3299,
+    inset 0 1px 0 #ffffff80;
+  isolation: isolate;
+}
+.quiet-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--line-color, var(--green)) 30%, transparent) 1.1px,
+      transparent 1.7px
+    )
+    0 0 / 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 20%, transparent 100%);
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 20%, transparent 100%);
+  translate: var(--jx, 0) var(--jy, 0);
+  pointer-events: none;
+}
+/* When only the one that matters is left, the board lets out one breath. */
+.quiet-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px var(--green);
+  opacity: 0;
+  pointer-events: none;
+}
+.quiet-panel.is-calm::after {
+  animation: quiet-breath 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+@keyframes quiet-breath {
+  0% {
+    opacity: 0.7;
+    box-shadow: inset 0 0 0 2px var(--green);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: inset 0 0 0 46px var(--green);
+  }
+}
+.quiet-tally {
+  position: absolute;
+  right: clamp(18px, 2.2vw, 34px);
+  top: clamp(16px, 2.4vh, 28px);
+  z-index: 45;
+  display: grid;
+  justify-items: end;
+  color: var(--line-color, var(--green-dark));
+  text-align: right;
+  pointer-events: none;
+}
+.quiet-tally b {
+  font: 750 clamp(40px, 4.4vw, 68px)/0.9 var(--font-title);
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+.quiet-tally b {
+  transform-origin: 100% 100%;
+}
+.quiet-tally small {
+  margin-top: 6px;
+  font: 600 clamp(12px, 1vw, 15px)/1.2 var(--font-title);
+  opacity: 0.75;
+}
+.quiet-card {
+  position: relative;
+  z-index: 1;
+  width: min(84%, 280px);
+  padding: 14px 15px 13px;
+  border: 1px solid var(--line-mint);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 16px 34px -24px #163f3280;
+  transition:
+    border-color 0.5s,
+    box-shadow 0.5s;
+}
+.quiet-card-app {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+  color: var(--muted);
+}
+.quiet-card-app b {
+  font: 750 14px/1 var(--font-title);
+  letter-spacing: -0.04em;
+  color: var(--green);
+}
+.quiet-card-to {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--soft);
+}
+.quiet-card h4 {
+  margin: 4px 0 0;
+  font: 700 15px/1.3 var(--font-title);
+  color: var(--green-dark);
+}
+.quiet-card p:last-child {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #5d6f63;
+}
+
+/* ---------- With motion ---------- */
+.quiet-thread {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.quiet-thread path {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.quiet[data-motion] .quiet-head,
+.quiet[data-motion] .quiet-rules {
+  position: relative;
+  z-index: 1;
+}
+.quiet[data-motion] .quiet-stage {
+  --gap: clamp(16px, 3vh, 30px);
+  position: relative;
+  top: 0;
+  z-index: 2;
+  height: 100svh;
+  padding-block: var(--gap);
+}
+.quiet[data-motion] .quiet-panel {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+.quiet[data-motion] .quiet-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 270px;
+  will-change: transform;
+}
+.quiet[data-motion] .quiet-card.is-clean {
+  border-color: var(--green);
+  box-shadow: 0 26px 50px -26px #163f3290;
+}
+.quiet[data-motion] .quiet-rule {
+  transition: opacity 0.5s;
+}
+.quiet[data-motion] .quiet-rule.is-active .quiet-icon {
+  background: var(--green);
+  color: #fff;
+}
+
+/* The noise: what people get today. */
+.quiet-note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 8px;
+  width: 168px;
+  height: 46px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+  box-shadow: 0 10px 22px -14px #163f3250;
+  font-size: 10.5px;
+  line-height: 1.25;
+  visibility: hidden;
+  will-change: transform;
+}
+.quiet-note i {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: hsl(var(--hue) 36% 46%);
+  color: #fff;
+  font: 700 9px/1 var(--font-title);
+  font-style: normal;
+}
+.quiet-note b {
+  overflow: hidden;
+  font-weight: 650;
+  color: var(--ink);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.quiet-note > span:not([class]) {
+  grid-column: 2;
+  overflow: hidden;
+  color: #6b7a70;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.quiet-note em {
+  grid-row: 1 / 3;
+  grid-column: 3;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--danger);
+  color: #fff;
+  font: 700 9.5px/18px var(--font-text);
+  font-style: normal;
+  text-align: center;
+}
+.quiet-note-sum {
+  position: absolute;
+  left: 42px;
+  right: 36px;
+  top: 50%;
+  height: 14px;
+  margin-top: -7px;
+  opacity: 0;
+  background:
+    linear-gradient(#dfe5da 0 0) 0 0 / 70% 5px no-repeat,
+    linear-gradient(#e7ebe3 0 0) 0 100% / 94% 5px no-repeat;
+}
+.quiet-note-tick {
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  transform: scale(0);
+}
+
+/* What each commitment brings onto the stage. */
+.quiet-hold,
+.quiet-fix,
+.quiet-count,
+.quiet-summary,
+.quiet-sky,
+.quiet-queue,
+.quiet-chip,
+.quiet-ask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 40;
+  margin: 0;
+  visibility: hidden;
+}
+.quiet-hold {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 10px 24px -14px #163f3270;
+  font-size: 10px;
+  color: var(--muted);
+}
+.quiet-hold svg {
+  position: absolute;
+  inset: 0;
+  rotate: -90deg;
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 3.5;
+}
+.quiet-hold .quiet-hold-ring {
+  stroke: var(--green);
+  stroke-dasharray: 1;
+  stroke-linecap: round;
+  transition: stroke 0.3s;
+}
+.quiet-hold.is-stopped .quiet-hold-ring {
+  stroke: #b7c2b4;
+}
+.quiet-hold b {
+  font: 700 17px/1 var(--font-title);
+  color: var(--green-dark);
+}
+.quiet-fix {
+  padding: 7px 12px;
+  border: 1px solid #ecd6ca;
+  border-radius: 14px 14px 14px 4px;
+  background: #fff8f3;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--ink);
+  box-shadow: 0 10px 22px -16px #163f3260;
+}
+.quiet-count {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  color: var(--green-dark);
+  white-space: nowrap;
+}
+.quiet-count b {
+  min-width: 0.6em;
+  font: 750 58px/1 var(--font-title);
+  letter-spacing: -0.04em;
+  transition: color 0.3s;
+}
+.quiet-count small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.quiet-count.is-full b {
+  color: var(--green);
+}
+.quiet-summary {
+  display: grid;
+  gap: 2px;
+  width: 172px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--green);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 11px;
+  color: var(--muted);
+  box-shadow: 0 16px 30px -20px #163f3270;
+}
+.quiet-summary b {
+  font: 700 13px/1.2 var(--font-title);
+  color: var(--green-dark);
+}
+.quiet-sky {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--lime);
+}
+.quiet-sky svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.quiet-sky b {
+  font: 700 22px/1 var(--font-title);
+  letter-spacing: -0.02em;
+}
+.quiet-sky .sun,
+.quiet-sky.is-morning .moon {
+  display: none;
+}
+.quiet-sky.is-morning .sun {
+  display: block;
+}
+.quiet-sky.is-morning {
+  color: var(--green-dark);
+}
+.quiet-queue {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  white-space: nowrap;
+  color: var(--lime);
+}
+.quiet-chip {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.quiet-chip i {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1.5px dashed var(--soft);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--green-dark);
+  font: 700 12px/1 var(--font-title);
+  font-style: normal;
+}
+.quiet-ask {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 42px;
+  border: 1.5px solid var(--green);
+  border-radius: 15px 15px 15px 4px;
+  background: var(--surface);
+  color: var(--green);
+  font: 750 22px/1 var(--font-title);
+}
+
+/* Desktop: full screen. The heading fills the first screen beside the stage; each commitment then has
+   most of a screen to itself; the calm at the end is the longest-held frame on the page. */
+@media (min-width: 761px) {
+  .quiet[data-motion] {
+    padding: 14vh clamp(22px, 3.6vw, 72px) 34vh;
+  }
+  .quiet[data-motion] .quiet-body {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    max-width: none;
+  }
+  .quiet[data-motion] .quiet-title {
+    font-size: clamp(32px, 3.2vw, 46px);
+  }
+  .quiet[data-motion] .quiet-head {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 86svh;
+  }
+  .quiet[data-motion] .quiet-rules {
+    gap: 0;
+    margin: 0;
+  }
+  .quiet[data-motion] .quiet-rule {
+    align-content: center;
+    min-height: 64svh;
+  }
+  .quiet[data-motion] .quiet-rule:not(.is-active) {
+    opacity: 0.4;
+  }
+  /* One commitment at a time. It holds the middle of the column beside the stage and is replaced by
+     the next as the page scrolls; five short bars under it say which one this is. The real list keeps
+     its place and its height underneath: it is what the scroll is measured by, and what a screen
+     reader reads. */
+  .quiet[data-index] .quiet-rules {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .quiet-index {
+    grid-column: 1;
+    grid-row: 2;
+    position: relative;
+    z-index: 1;
+  }
+  .quiet-index-view {
+    position: relative;
+    top: 0;
+    display: grid;
+    align-content: center;
+    height: 100svh;
+  }
+  .quiet-index ol {
+    display: grid;
+  }
+  .quiet-index li {
+    grid-area: 1 / 1;
+    align-self: center;
+    visibility: hidden;
+  } /* index.js brings each one in and takes it out */
+  .quiet-index .quiet-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+    background: var(--green);
+    color: #fff;
+    box-shadow: 0 18px 30px -18px #163f32b0;
+  }
+  .quiet-index .quiet-icon svg {
+    width: 38px;
+    height: 38px;
+    overflow: visible;
+    stroke-width: 1.5;
+  }
+  .quiet-index .quiet-icon svg * {
+    stroke-dasharray: 1;
+  }
+  /* The page's two tones, in one line: a quiet "It", then what it does. */
+  .quiet-index h3 {
+    margin-top: clamp(20px, 3vh, 30px);
+    font: 750 clamp(32px, 3.4vw, 52px)/1.06 var(--font-title);
+    letter-spacing: -0.04em;
+    color: var(--green-dark);
+  }
+  .quiet-index h3 .soft {
+    color: var(--soft);
+  }
+  .quiet-index p {
+    max-width: 30ch;
+    margin-top: 16px;
+    font-size: clamp(17px, 1.45vw, 22px);
+    line-height: 1.5;
+    color: #5d6f63;
+  }
+  /* The one figure in each sentence, marked as with a highlighter that is drawn across it. */
+  .quiet-index mark {
+    padding: 0 0.12em;
+    margin: 0 -0.12em;
+    border-radius: 3px;
+    background: linear-gradient(var(--lime), var(--lime)) 0 88% / var(--sweep, 100%) 0.46em
+      no-repeat;
+    color: var(--green-dark);
+    font-weight: 650;
+  }
+  .quiet-index-bars {
+    display: flex;
+    gap: 8px;
+    margin-top: clamp(26px, 4vh, 40px);
+  }
+  .quiet-index-bars i {
+    width: 34px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--line-mint);
+    transition:
+      background-color 0.5s,
+      width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .quiet-index-bars i.is-done {
+    background: var(--soft);
+  }
+  .quiet-index-bars i.is-active {
+    width: 58px;
+    background: var(--green);
+  }
+  .quiet[data-motion] .quiet-rules::after {
+    content: '';
+    height: 140svh;
+  }
+}
+
+/* Phones: the stage holds the top of the screen; the commitments pass through the bottom, as cards
+   the thread runs behind. */
+@media (max-width: 760px) {
+  .quiet-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .quiet-head,
+  .quiet-stage,
+  .quiet-rules {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .quiet-stage {
+    margin-top: 32px;
+  }
+  .quiet[data-motion] {
+    padding: 46px 22px 74svh;
+  } /* the screen under the stage, then the card's ride */
+  .quiet[data-motion] .quiet-head {
+    padding-right: 26px;
+  } /* the thread's rail runs down the right */
+  .quiet[data-motion] .quiet-stage {
+    --gap: 10px;
+    z-index: 3;
+    height: 56svh;
+    margin-inline: -22px;
+    padding-inline: 12px;
+    background: var(--canvas);
+  }
+  .quiet[data-motion] .quiet-rules {
+    gap: 30svh;
+    margin: 0;
+    padding-top: 52svh;
+  }
+  .quiet[data-motion] .quiet-rule {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+  }
+  .quiet[data-motion] .quiet-rules::after {
+    content: '';
+    height: 60svh;
+  }
+  .quiet[data-motion] .quiet-card {
+    width: 196px;
+    padding: 11px 12px 10px;
+  }
+  .quiet[data-motion] .quiet-card p:last-child {
+    display: none;
+  }
+  .quiet-note {
+    width: 124px;
+    height: 38px;
+    column-gap: 6px;
+    padding: 0 7px;
+    border-radius: 10px;
+    font-size: 9.5px;
+  }
+  .quiet-note i {
+    width: 20px;
+    height: 20px;
+    font-size: 7.5px;
+  }
+  .quiet-note em {
+    min-width: 15px;
+    height: 15px;
+    padding: 0 4px;
+    font-size: 8px;
+    line-height: 15px;
+  }
+  .quiet-note-sum {
+    left: 33px;
+    right: 27px;
+  }
+  .quiet-count b {
+    font-size: 44px;
+  }
+}
