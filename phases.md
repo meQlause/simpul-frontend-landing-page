@@ -830,8 +830,8 @@ Particulars:
 
 Tasks: steps A to H. Extra exit checks:
 
-- [ ] e2e: the Pause button toggles `aria-pressed` and its label
-- [ ] The seam 2 → 3: section 2's order and section 3's are never visible together, and the order
+- [x] e2e: the Pause button toggles `aria-pressed` and its label
+- [x] The seam 2 → 3: section 2's order and section 3's are never visible together, and the order
       does not jump when section 3 takes it (compare with the vanilla page)
 
 Commit: `feat(turn): port section 3 to React`
