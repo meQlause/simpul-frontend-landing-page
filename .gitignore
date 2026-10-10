@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+parity/
+public/film/
+.env*
+!.env.example
+!.env.sample
+!.env.template

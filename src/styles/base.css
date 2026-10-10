@@ -1,0 +1,415 @@
+/* The page with no motion at all. Every section must already read correctly at this layer;
+   animation is added on top and reverted under prefers-reduced-motion. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: 17px;
+  line-height: 1.6;
+  font-synthesis: none;
+  overflow-x: hidden;
+}
+h1,
+h2,
+h3,
+p,
+ol,
+ul,
+figure,
+blockquote {
+  margin: 0;
+}
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  padding: 10px 14px;
+  background: var(--green);
+  color: #fff;
+  border-radius: 8px;
+  z-index: 100;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+#page {
+  position: relative;
+}
+.section {
+  position: relative;
+  z-index: 1;
+  padding: var(--section-gap) var(--gutter);
+}
+.section > .wrap {
+  max-width: var(--width);
+  margin: 0 auto;
+}
+
+/* Where the thread enters and leaves a section. Move them wherever the design needs;
+   add [data-thread-via] points between them to bend the route. */
+[data-thread-in],
+[data-thread-out],
+[data-thread-via] {
+  position: absolute;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+[data-thread-in] {
+  top: 0;
+}
+[data-thread-out] {
+  bottom: 0;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.55px;
+  text-transform: uppercase;
+  color: #7b8a77;
+  margin-bottom: 18px;
+}
+.headline {
+  font-family: var(--font-title);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  font-size: clamp(38px, 6.4vw, 84px);
+  color: var(--green-dark);
+}
+.headline span {
+  display: block;
+}
+.headline .soft {
+  color: var(--soft);
+}
+.headline--section {
+  font-size: clamp(32px, 4.6vw, 60px);
+}
+.dot {
+  color: var(--dot);
+}
+.lead {
+  font-size: clamp(17px, 1.5vw, 21px);
+  color: #5d6f63;
+  max-width: 46ch;
+  margin-top: 24px;
+}
+.footline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #8a9980;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border-radius: 10px;
+  border: 1px solid #dfe5da;
+  background: #fff;
+  font-weight: 550;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button--primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.grid {
+  display: grid;
+  gap: 18px;
+  margin-top: 48px;
+}
+.grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.grid--4 {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.grid--5 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.stage {
+  position: relative;
+  min-height: 320px;
+  margin-top: 48px;
+  border: 1px dashed var(--line-mint);
+  border-radius: var(--radius-lg);
+  background: var(--mint);
+  display: grid;
+  place-items: center;
+  color: #8a9980;
+  font-size: 13px;
+  text-align: center;
+  padding: 24px;
+}
+
+/* The thread: one path the whole length of the page, behind the content. */
+.thread-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+.thread {
+  fill: none;
+  stroke: var(--thread-sage);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  transition: stroke 0.6s;
+}
+.thread-layer[data-color='green'] .thread {
+  stroke: var(--green);
+}
+
+/* The carried object: one thing in five forms. */
+.carried {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  translate: -50% -50%;
+  z-index: 2;
+  padding: 10px 15px;
+  border-radius: 100px;
+  border: 1px solid var(--line-mint);
+  background: #fff;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--green-dark);
+  box-shadow: 0 4px 14px #3e5e1f0d;
+}
+
+.solo-note {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 50;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--green-dark);
+  color: #fff;
+  font-size: 12px;
+}
+
+/* The page swaps local representations at a hand-off, including when scrolling back. */
+[data-handed-off] [data-handoff-object] {
+  visibility: hidden !important;
+}
+
+/* The film, opened from any [data-film] button. */
+.film {
+  width: min(1100px, 94vw);
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: #0d241c;
+  overflow: visible;
+  box-shadow: 0 40px 120px -30px #000;
+}
+.film::backdrop {
+  background: #0d241ce6;
+  backdrop-filter: blur(6px);
+}
+.film video {
+  display: block;
+  width: 100%;
+  max-height: 82vh;
+  border-radius: 18px;
+  background: #000;
+}
+.film-close {
+  position: absolute;
+  right: 0;
+  top: -44px;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Hover, for a mouse only: text answers the pointer, the same way everywhere. A headline line steps
+   right and turns green behind a lime tick; an item's title steps right, turns green, and gets a
+   highlighter swept under it. Only translate and colour move, so nothing reflows. */
+@media (hover: hover) and (pointer: fine) {
+  .headline:not(.hero-title) > span {
+    position: relative;
+    transition:
+      translate 0.5s var(--hover-ease),
+      color 0.35s;
+  }
+  .headline:not(.hero-title) > span::before {
+    content: '';
+    position: absolute;
+    left: -0.4em;
+    top: 0.2em;
+    bottom: 0.2em;
+    width: 0.11em;
+    border-radius: 1em;
+    background: var(--lime);
+    transform: scaleY(0);
+    transition: transform 0.45s var(--hover-ease);
+  }
+  .headline:not(.hero-title) > span:hover {
+    translate: 0.16em 0;
+    color: var(--green);
+  }
+  .headline:not(.hero-title) > span.soft:hover {
+    color: var(--green-dark);
+  }
+  .headline:not(.hero-title) > span:hover::before {
+    transform: scaleY(1);
+  }
+
+  :is(
+    .turn-asks strong,
+    .quiet-rule h3,
+    .how-panel h3,
+    .panel-shot h3,
+    .person h3,
+    .chain-person strong,
+    .data-kept span,
+    .page-foot-nav a,
+    .page-foot-line,
+    .data-layers li,
+    .is-not li
+  ) {
+    width: fit-content;
+    transition:
+      translate 0.45s var(--hover-ease),
+      color 0.3s,
+      background-size 0.45s var(--hover-ease);
+  }
+  :is(
+    .turn-asks strong,
+    .quiet-rule h3,
+    .how-panel h3,
+    .panel-shot h3,
+    .person h3,
+    .chain-person strong,
+    .data-kept span,
+    .page-foot-nav a,
+    .page-foot-line
+  ) {
+    background: linear-gradient(var(--lime), var(--lime)) 0 90% / 0% 0.38em no-repeat;
+  }
+  :is(
+    .turn-asks li:hover strong,
+    .quiet-rule:hover h3,
+    .how-panel:hover h3,
+    .panel-shot:hover h3,
+    .person:hover h3,
+    .data-kept li:hover span,
+    .page-foot-nav a:hover,
+    .page-foot-line:hover
+  ) {
+    translate: 6px 0;
+    color: var(--green);
+    background-size: 100% 0.38em;
+  }
+  /* A layer's name sits on its connector, and a "not" line is crossed out: no highlighter, just the step. */
+  :is(.data-layers li, .is-not li):hover {
+    translate: 6px 0;
+    color: var(--green);
+  }
+  .data-layers li:hover {
+    translate: 6px -50%;
+  } /* it is centred on its layer by translate */
+  /* Components: the drawing in an item answers with it. Set on parts GSAP never transforms. */
+  :is(.chain-face svg, .turn-ask-icon, .data-kept svg, .panel-shot img, .turn-msg > div) {
+    transition:
+      scale 0.45s var(--hover-ease),
+      translate 0.45s var(--hover-ease),
+      box-shadow 0.4s;
+  }
+  :is(.chain-person:hover .chain-face svg, .turn-asks li:hover .turn-ask-icon) {
+    scale: 1.14 !important;
+  } /* GSAP leaves scale: none inline on what it has animated */
+  .data-kept li:hover svg {
+    scale: 1.05 !important;
+  }
+  .panel-shot:hover img {
+    scale: 1.02 !important;
+  }
+  .turn-msg > div:hover {
+    translate: 0 -3px !important;
+    box-shadow: 0 14px 24px -16px #176448a0;
+  }
+  .chain-person strong {
+    margin-inline: auto;
+  } /* centred under its tile, and no step */
+  .problem[data-motion] :is(.problem-head, .chain-person) {
+    pointer-events: auto;
+  } /* its scene is otherwise see-through to the pointer */
+  .chain-person:hover strong {
+    color: var(--green);
+    background-size: 100% 0.38em;
+  }
+}
+:root {
+  --hover-ease: cubic-bezier(0.2, 0.9, 0.25, 1.2);
+}
+
+@media (max-width: 760px) {
+  body {
+    font-size: 16px;
+  }
+}

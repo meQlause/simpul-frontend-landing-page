@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#176448" />
+    <meta
+      name="description"
+      content="Simpul makes sure important information does not get stuck between people. It sits on the chat your team already uses."
+    />
+    <title>Simpul — Busy conversations. Clear next steps.</title>
+    <link rel="icon" type="image/png" href="/simpul-mark.png" />
+    <!-- Until the hero's opening has run, what it reveals stays hidden. Only if the script never runs
+         does the timeout show it anyway. -->
+    <style>
+      @media (prefers-reduced-motion: no-preference) {
+        .hero-boot .hero-lockup,
+        .hero-boot .hero-heading-line,
+        .hero-boot .hero-kicker,
+        .hero-boot .hero-bottom,
+        .hero-boot .hero-footer {
+          visibility: hidden;
+        }
+      }
+    </style>
+    <script>
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('hero-boot');
+        setTimeout(() => document.documentElement.classList.remove('hero-boot'), 9000);
+      }
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#page">Skip to content</a>
+    <!-- One scroll for the whole page: ScrollSmoother moves #smooth-content inside #smooth-wrapper,
+         and every section's ScrollTrigger runs on that one clock. -->
+    <div id="smooth-wrapper">
+      <div id="smooth-content">
+        <main id="page">
+          <!-- React owns #sections only. The page's thread layer is added beside it, in #page. -->
+          <div id="sections"><!--app-html--></div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

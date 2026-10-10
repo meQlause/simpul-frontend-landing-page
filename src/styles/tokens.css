@@ -1,0 +1,24 @@
+/* Copied from the admin panel's styles.css. Add a value here before using it anywhere. */
+:root {
+  --green: #176448;
+  --green-dark: #163f32;
+  --mint: #edf4e7;
+  --lime: #d4eeab;
+  --ink: #263c33;
+  --muted: #89918a;
+  --soft: #6a9658; /* the second, sage line of a two-tone headline */
+  --line: #e6eae4;
+  --line-mint: #dae5d4;
+  --surface: #fff;
+  --canvas: #f8f9f6;
+  --danger: #ad3b2c;
+  --dot: #71a977; /* the full stop after a title */
+  --thread-sage: #c1dca9;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --font-title: 'Manrope Variable', 'Manrope', sans-serif;
+  --font-text: 'DM Sans Variable', 'DM Sans', sans-serif;
+  --width: 1120px;
+  --gutter: clamp(20px, 5vw, 48px);
+  --section-gap: clamp(96px, 16vh, 180px);
+}
