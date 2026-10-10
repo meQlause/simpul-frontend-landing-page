@@ -15,7 +15,8 @@ const viewport = device === 'phone' ? VIEWPORTS.phone : VIEWPORTS.desktop;
 const SITES = { vanilla: 'http://localhost:5173', react: 'http://localhost:5174' };
 const STOP_COUNT = 5; // six screenshots, from the section arriving to it leaving
 const STOPS = [...Array(STOP_COUNT + 1).keys()].map((index) => index / STOP_COUNT);
-const PAUSE = { step: 40, settle: 1800, load: 1500 };
+// Let directional snapping and the smoother finish before comparing their final frames.
+const PAUSE = { step: 40, settle: 5000, load: 1500 };
 const STEP = 300;
 
 // The scroll length of the section: its own height, or its pin spacer's when it is pinned.

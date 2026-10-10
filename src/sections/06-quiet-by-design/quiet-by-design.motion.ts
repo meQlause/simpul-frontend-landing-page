@@ -163,7 +163,8 @@ function pinInView(
     pinSpacer,
     start: 'top top',
     endTrigger,
-    end: END_AT_BOTTOM,
+    end: () =>
+      `+=${endTrigger.getBoundingClientRect().bottom - trigger.getBoundingClientRect().top - trigger.offsetHeight}`,
   });
 }
 
@@ -173,6 +174,8 @@ function pinInView(
 function wrapStage(stage: HTMLElement): HTMLElement {
   const spacer = document.createElement('div');
   spacer.className = 'pin-spacer';
+  // Keep the same grid rows while ScrollTrigger reverts the native spacer to measure the column.
+  spacer.style.gridArea = getComputedStyle(stage).gridArea;
   stage.before(spacer);
   spacer.append(stage);
   stage.style.width = '100%'; // the bleed margins are the spacer's; the stage fills it

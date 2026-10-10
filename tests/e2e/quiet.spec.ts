@@ -68,3 +68,26 @@ test('at desktop width the stage is pinned while the commitments scroll past', a
     await expect.poll(() => stageTop(page)).toBeLessThanOrEqual(PINNED_PX);
   }
 });
+
+test('the stage stops at the bottom of its column, matching the vanilla sticky rule', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.locator('html')).not.toHaveClass(/hero-boot/, { timeout: LOAD_MS });
+  const column = await columnOf(page);
+  await page.evaluate(
+    (position) => scrollTo(0, position),
+    column.top + column.height - column.screen / 4,
+  );
+  await expect.poll(() => lag(page)).toBeLessThanOrEqual(SETTLED_PX);
+  await expect
+    .poll(() =>
+      page.locator('.quiet-stage').evaluate((node) => {
+        const body = document.querySelector('.quiet-body');
+        return Math.abs(
+          node.getBoundingClientRect().bottom - (body?.getBoundingClientRect().bottom ?? NaN),
+        );
+      }),
+    )
+    .toBeLessThanOrEqual(PINNED_PX);
+});
