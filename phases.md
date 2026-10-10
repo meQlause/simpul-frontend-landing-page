@@ -799,9 +799,9 @@ Particulars:
 
 Tasks: steps A to H. Extra exit checks:
 
-- [ ] Scroll to the end of section 2 and back to the top: every bubble is gone and the order is back
+- [x] Scroll to the end of section 2 and back to the top: every bubble is gone and the order is back
       at the start
-- [ ] The first JavaScript file loaded by `dist/index.html` does not contain `matter` (it is a
+- [x] The first JavaScript file loaded by `dist/index.html` does not contain `matter` (it is a
       separate chunk)
 
 Commit: `feat(problem): port section 2 to React`

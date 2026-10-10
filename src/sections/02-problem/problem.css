@@ -1,0 +1,344 @@
+/* The problem. Without motion: the chain as a diagram, the failures as a list. */
+.chain {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 48px;
+}
+.chain-person {
+  position: relative;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.chain-face {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  background: var(--mint);
+  color: var(--green-dark);
+  font: 700 15px/1 var(--font-title);
+}
+.chain-face svg {
+  width: 58%;
+  height: 58%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+.chain-face .accent {
+  fill: var(--lime);
+}
+.chain-person strong {
+  display: block;
+  font-family: var(--font-title);
+}
+.chain-person strong + span {
+  font-size: 14px;
+  color: var(--muted);
+}
+.chain-link {
+  display: none;
+}
+.failures .card {
+  font-weight: 550;
+}
+
+/* With motion: one pinned, full-screen frame. Header, the chain, then the floor everything falls to.
+   Layers, back to front: thread 1, the pile 2, the chain 3, the floor's labels 4, the order 5, the header 6. */
+.problem[data-motion] {
+  --face: clamp(58px, 5.4vw, 80px);
+  --gap: clamp(18px, 3vw, 44px);
+  height: 100svh;
+  padding: clamp(40px, 7vh, 72px) clamp(22px, 3.6vw, 72px) 0;
+  background: var(--canvas);
+  overflow: hidden;
+}
+.problem[data-motion] .problem-scene {
+  max-width: none;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  pointer-events: none;
+}
+.problem[data-motion] .problem-head {
+  position: relative;
+  z-index: 6;
+}
+.problem[data-motion] .headline {
+  font-size: clamp(34px, min(5.4vw, 9vh), 110px);
+  letter-spacing: -0.05em;
+}
+.problem[data-motion] .chain {
+  position: relative;
+  z-index: 3;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--gap);
+  margin-top: clamp(44px, 8vh, 84px);
+}
+.problem[data-motion] .chain-person {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.problem[data-motion] .chain-face {
+  width: var(--face);
+  height: var(--face);
+  margin: 0 auto 14px;
+  border-radius: calc(var(--face) * 0.3);
+  background: var(--surface);
+  border: 1px solid var(--line-mint);
+  box-shadow: 0 10px 26px #163f3210;
+}
+.problem[data-motion] .chain-person strong + span {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+.problem[data-motion] .chain-person::after {
+  content: '✓';
+  position: absolute;
+  left: calc(50% + var(--face) / 2 - 12px);
+  top: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--green);
+  color: #fff;
+  font-size: 12px;
+  box-shadow: 0 0 0 3px var(--canvas);
+  opacity: var(--done, 0);
+  scale: calc(0.6 + var(--done, 0) * 0.4);
+}
+/* The link to the next person spans the gap, level with the tiles. Two halves, so it can snap. */
+.problem[data-motion] .chain-link {
+  display: flex;
+  position: absolute;
+  left: calc(50% + var(--face) / 2 + 8px);
+  top: calc(var(--face) / 2 - 1px);
+  width: calc(100% + var(--gap) - var(--face) - 16px);
+  height: 2px;
+  transform-origin: 0 50%;
+}
+.chain-link s {
+  flex: 1;
+  height: 2px;
+  background:
+    linear-gradient(var(--green), var(--green)) 0 0 / calc(var(--fill, 0) * 100%) 100% no-repeat,
+    color-mix(in srgb, var(--danger) calc(var(--lost, 0) * 70%), var(--line-mint));
+}
+/* Not reached: a red mark where the tick would have been. */
+.problem[data-motion] .chain-person::before {
+  content: '!';
+  position: absolute;
+  z-index: 1;
+  left: calc(50% + var(--face) / 2 - 12px);
+  top: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--danger);
+  color: #fff;
+  font: 700 12px/1 var(--font-title);
+  box-shadow: 0 0 0 3px var(--canvas);
+  opacity: var(--lost, 0);
+  scale: calc(0.4 + var(--lost, 0) * 0.6);
+}
+.chain-link s:first-child {
+  transform-origin: 0 50%;
+}
+.chain-link s:last-child {
+  transform-origin: 100% 50%;
+}
+
+.problem[data-motion] .problem-floor {
+  position: relative;
+  z-index: 4;
+  margin-top: clamp(28px, 6vh, 56px);
+}
+.problem[data-motion] .problem-close {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--green-dark);
+  font-size: clamp(20px, 2.2vw, 30px);
+  max-width: 24ch;
+}
+.problem[data-motion] .failures {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: block;
+}
+.problem[data-motion] .failures .card {
+  position: absolute;
+  padding: 9px 14px 9px 30px;
+  border-radius: 100px;
+  border-color: #e9d3cc;
+  font-size: 13px;
+  white-space: nowrap;
+  box-shadow: 0 10px 26px #163f3214;
+  translate: none;
+}
+.problem[data-motion] .failures .card::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: var(--danger);
+}
+.failures .card:nth-child(1) {
+  left: 14%;
+  bottom: 34%;
+}
+.failures .card:nth-child(2) {
+  left: 34%;
+  bottom: 52%;
+}
+.failures .card:nth-child(3) {
+  left: 70%;
+  bottom: 58%;
+}
+.failures .card:nth-child(4) {
+  left: 86%;
+  bottom: 32%;
+}
+.failures .card:nth-child(5) {
+  left: 54%;
+  bottom: 74%;
+}
+
+/* Drawn by index.js: the section's own stretch of thread, the questions, the order. */
+.problem-thread {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+.problem-thread path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--danger) calc(var(--lost, 0) * 100%), var(--thread-sage));
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.problem-pile {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.problem-bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 9px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line-mint);
+  border-radius: 14px 14px 14px 4px;
+  font-size: 14px;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--ink);
+  box-shadow: 0 6px 16px #163f320f;
+  translate: -50% -50%;
+  visibility: hidden;
+  will-change: transform;
+}
+.problem .problem-order {
+  left: 0;
+  top: 0;
+  z-index: 5;
+  will-change: transform;
+}
+
+@media (max-width: 760px) {
+  .problem[data-motion] {
+    --face: 46px;
+    --gap: 6px;
+  }
+  .problem[data-motion] .chain {
+    margin-top: 58px;
+  }
+  .problem[data-motion] .chain-face {
+    margin-bottom: 7px;
+  }
+  .problem[data-motion] .chain-person strong {
+    font-size: 10px;
+    letter-spacing: -0.01em;
+  }
+  .problem[data-motion] .chain-person strong + span {
+    display: none;
+  }
+  .problem[data-motion] .chain-person::after,
+  .problem[data-motion] .chain-person::before {
+    left: calc(50% + var(--face) / 2 - 10px);
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    box-shadow: 0 0 0 2px var(--canvas);
+  }
+  .problem[data-motion] .chain-link {
+    left: calc(50% + var(--face) / 2 + 3px);
+    width: calc(100% + var(--gap) - var(--face) - 6px);
+  }
+  .problem[data-motion] .problem-close {
+    font-size: 19px;
+  }
+  .problem[data-motion] .failures .card {
+    font-size: 11px;
+    padding: 7px 11px 7px 25px;
+  }
+  .problem[data-motion] .failures .card::before {
+    left: 11px;
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+  }
+  .failures .card:nth-child(1) {
+    left: 30%;
+    bottom: 30%;
+  }
+  .failures .card:nth-child(2) {
+    left: 66%;
+    bottom: 44%;
+  }
+  .failures .card:nth-child(3) {
+    left: 36%;
+    bottom: 57%;
+  }
+  .failures .card:nth-child(4) {
+    left: 68%;
+    bottom: 70%;
+  }
+  .failures .card:nth-child(5) {
+    left: 50%;
+    bottom: 20%;
+  }
+  .problem-bubble {
+    font-size: 12px;
+    padding: 7px 11px;
+  }
+}

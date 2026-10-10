@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import { stubSection } from './stub';
 import { Hero } from './01-hero/Hero';
+import { Problem } from './02-problem/Problem';
 
 export interface SectionView {
   id: string;
@@ -12,7 +13,7 @@ export interface SectionView {
 // A port phase swaps one stubSection(...) for the real component, e.g. { id: '08-your-data', Component: YourData }.
 export const SECTIONS: readonly SectionView[] = [
   { id: '01-hero', Component: Hero },
-  { id: '02-problem', Component: stubSection({ id: '02-problem', className: 'problem' }) },
+  { id: '02-problem', Component: Problem },
   { id: '03-turn', Component: stubSection({ id: '03-turn', className: 'turn' }) },
   {
     id: '04-how-it-works',

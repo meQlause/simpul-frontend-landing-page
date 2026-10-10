@@ -373,6 +373,7 @@ function setStart(scene: Scene): void {
   const { gsap, carried } = scene.shared;
   carried.setForm('order');
   scene.opening.append(carried.el);
+  carried.el.dataset.handoffObject = ''; // the page hides it once the next section takes it
   gsap.set([scene.releasePath, carried.el], { autoAlpha: 0 });
   gsap.set(scene.lockup, { visibility: 'visible' });
   gsap.set(scene.links, {
