@@ -1,0 +1,31 @@
+import { expect, test } from '@playwright/test';
+
+// The hero's own browser checks. The whole-page walk lives in flow.spec.ts.
+const OPENING_MS = 15_000; // the opening is about five seconds, plus the fonts
+
+test('the hero is hidden until its opening reveals it, on every load', async ({ page }) => {
+  test.setTimeout(OPENING_MS * 5);
+  for (let load = 0; load < 5; load++) {
+    await page.goto('/');
+    await expect(page.locator('html')).toHaveClass(/hero-boot/);
+    await expect(page.locator('.hero-heading-line').first()).toBeHidden();
+    await expect(page.locator('html')).not.toHaveClass(/hero-boot/, { timeout: OPENING_MS });
+  }
+});
+
+test('Watch the video opens the film, and Escape closes it', async ({ page }) => {
+  await page.goto('/');
+  const film = page.locator('dialog.film');
+  await page.locator('[data-film]').click({ timeout: OPENING_MS });
+  await expect(film).toHaveJSProperty('open', true);
+  await page.keyboard.press('Escape');
+  await expect(film).toHaveJSProperty('open', false);
+});
+
+test('See how it works moves the page down', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('html')).not.toHaveClass(/hero-boot/, { timeout: OPENING_MS });
+  const before = await page.evaluate(() => scrollY);
+  await page.getByRole('link', { name: 'See how it works' }).click();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before);
+});

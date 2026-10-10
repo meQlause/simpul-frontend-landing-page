@@ -761,10 +761,10 @@ Particulars:
 
 Tasks: steps A to H of section 2. Extra exit checks:
 
-- [ ] Reload the built page 5 times (desktop): the headline, eyebrow and buttons never show before
+- [x] Reload the built page 5 times (desktop): the headline, eyebrow and buttons never show before
       the intro reveals them
-- [ ] e2e: clicking "Watch the video" opens a `<dialog class="film">`; Escape closes it
-- [ ] e2e: clicking "See how it works" moves the page (scroll position increases) with no error
+- [x] e2e: clicking "Watch the video" opens a `<dialog class="film">`; Escape closes it
+- [x] e2e: clicking "See how it works" moves the page (scroll position increases) with no error
 
 Commit: `feat(hero): port section 1 to React`
 

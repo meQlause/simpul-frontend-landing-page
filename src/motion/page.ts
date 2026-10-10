@@ -27,16 +27,20 @@ function activate(
   });
 }
 
-// The stub: put what the one section receives at its in-anchor, in the stated state.
+// The stub: put what the one section receives at its in-anchor, in the stated state. The note names
+// the section on screen, as the vanilla page does, whether or not it receives anything.
 function stub(active: Active, thread: Thread, carried: Carried): void {
   const [motion, root] = active[0] ?? [];
-  if (active.length !== 1 || !motion?.receives || !root) {
+  if (active.length !== 1 || !motion || !root) {
+    return;
+  }
+  document.body.insertAdjacentHTML('beforeend', `<div class="solo-note">solo · ${motion.id}</div>`);
+  if (!motion.receives) {
     return;
   }
   thread.setColor(motion.receives.thread);
   carried.setForm(motion.receives.form);
   root.querySelector('[data-thread-in]')?.append(carried.el);
-  document.body.insertAdjacentHTML('beforeend', `<div class="solo-note">solo · ${motion.id}</div>`);
 }
 
 function unhide(page: HTMLElement): void {

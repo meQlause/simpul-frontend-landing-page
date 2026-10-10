@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { stubSection } from './stub';
+import { Hero } from './01-hero/Hero';
 
 export interface SectionView {
   id: string;
@@ -10,7 +11,7 @@ export interface SectionView {
 // registered separately, in ./motions.ts, so no animation code is part of the prerender.
 // A port phase swaps one stubSection(...) for the real component, e.g. { id: '08-your-data', Component: YourData }.
 export const SECTIONS: readonly SectionView[] = [
-  { id: '01-hero', Component: stubSection({ id: '01-hero', className: 'hero', anchor: 'top' }) },
+  { id: '01-hero', Component: Hero },
   { id: '02-problem', Component: stubSection({ id: '02-problem', className: 'problem' }) },
   { id: '03-turn', Component: stubSection({ id: '03-turn', className: 'turn' }) },
   {

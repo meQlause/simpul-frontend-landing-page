@@ -32,6 +32,11 @@ describe('the page', () => {
     }
   });
 
+  it('has no duplicate ids anywhere in the page', () => {
+    const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it('registers markup and motion for the same sections, in the same order', () => {
     expect(SECTIONS.map((section) => section.id)).toEqual(ORDER);
     expect(MOTIONS.map((motion) => motion.id)).toEqual(ORDER);
