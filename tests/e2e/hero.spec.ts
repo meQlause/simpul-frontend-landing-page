@@ -15,8 +15,9 @@ test('the hero is hidden until its opening reveals it, on every load', async ({ 
 
 test('Watch the video opens the film, and Escape closes it', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('html')).not.toHaveClass(/hero-boot/, { timeout: OPENING_MS }); // the opening has finished
   const film = page.locator('dialog.film');
-  await page.locator('[data-film]').click({ timeout: OPENING_MS });
+  await page.locator('[data-film]').click();
   await expect(film).toHaveJSProperty('open', true);
   await page.keyboard.press('Escape');
   await expect(film).toHaveJSProperty('open', false);

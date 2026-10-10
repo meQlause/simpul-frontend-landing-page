@@ -857,7 +857,7 @@ with the legs table `LEGS` (`[start, end, from, to]`) → an array of objects in
 
 Tasks: steps A to H. Extra exit check:
 
-- [ ] Scrolling through section 4 and back: the page thread is green after it, sage before it
+- [x] Scrolling through section 4 and back: the page thread is green after it, sage before it
 
 Commit: `feat(how): port section 4 to React`
 

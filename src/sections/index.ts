@@ -3,6 +3,7 @@ import { stubSection } from './stub';
 import { Hero } from './01-hero/Hero';
 import { Problem } from './02-problem/Problem';
 import { Turn } from './03-turn/Turn';
+import { How } from './04-how-it-works/How';
 
 export interface SectionView {
   id: string;
@@ -16,10 +17,7 @@ export const SECTIONS: readonly SectionView[] = [
   { id: '01-hero', Component: Hero },
   { id: '02-problem', Component: Problem },
   { id: '03-turn', Component: Turn },
-  {
-    id: '04-how-it-works',
-    Component: stubSection({ id: '04-how-it-works', className: 'how', anchor: 'how-it-works' }),
-  },
+  { id: '04-how-it-works', Component: How },
   {
     id: '05-for-each-person',
     Component: stubSection({ id: '05-for-each-person', className: 'people' }),
