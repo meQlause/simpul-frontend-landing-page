@@ -1,0 +1,237 @@
+/* For each person. Still: four cards, the quote above the change, a straight line in each.
+   With motion (.people[data-motion]): one full screen. The thread splits into four strands, each card
+   holds a knot that unties, and the four rejoin below into one thread. */
+.people {
+  background: var(--canvas);
+  overflow-x: clip;
+} /* a card mid-swing must not widen the page */
+.people-head,
+.people-cards {
+  position: relative;
+  z-index: 1;
+  max-width: var(--width);
+  margin-inline: auto;
+}
+.people-kicker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.people .eyebrow {
+  margin: 0;
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.people-chapter {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--green);
+  white-space: pre;
+}
+.people-title {
+  margin-top: clamp(22px, 4vh, 44px);
+  font-size: clamp(32px, 3.8vw, 58px);
+}
+.people-hint {
+  display: none;
+}
+
+.people-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 18px;
+  margin-top: 48px;
+}
+.person {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 22px 40px -34px #163f3240;
+}
+.person:focus-visible {
+  outline-offset: 4px;
+}
+.person-knot {
+  position: relative;
+  height: 118px;
+  border-bottom: 1px solid var(--line-mint);
+  border-radius: 17px 17px 0 0;
+  background: var(--mint);
+}
+.person-knot svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.person-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 0;
+}
+.person-face {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  background: var(--mint);
+  color: var(--green-dark);
+}
+.person-face svg {
+  width: 86%;
+  height: 86%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.person-face .accent {
+  fill: var(--lime);
+}
+.person-face .eye {
+  fill: currentColor;
+  stroke: none;
+}
+.person h3 {
+  font: 700 18px/1.2 var(--font-title);
+  letter-spacing: -0.02em;
+  color: var(--green-dark);
+}
+.person small {
+  display: block;
+  margin-top: 3px;
+  font: 400 13px/1.3 var(--font-text);
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.person-say {
+  padding: 16px 20px 22px;
+}
+.person blockquote {
+  font-size: 15px;
+  line-height: 1.55;
+  color: #5d6f63;
+}
+.person-say p {
+  margin-top: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--green-dark);
+}
+
+/* ---------- With motion: index.js draws the strands; a knot can be pulled ---------- */
+.people-threads {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.people-threads path {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.people-threads .people-trunk {
+  stroke-width: 3.4;
+}
+.people-threads circle {
+  fill: var(--canvas);
+  stroke: var(--green);
+  stroke-width: 2.4;
+}
+.people[data-motion] .people-hint {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.people[data-motion] .person-still {
+  display: none;
+}
+.people[data-motion] .person-knot {
+  background: #f6f1ea;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.people[data-motion] .person-knot:active {
+  cursor: grabbing;
+}
+.people[data-motion] .person-say {
+  display: grid;
+}
+.people[data-motion] .person-say > * {
+  grid-area: 1 / 1;
+  margin: 0;
+}
+.people[data-motion] .person-say p {
+  font-size: 16px;
+}
+
+@media (min-width: 761px) {
+  .people[data-motion] {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(42px, 6vh, 76px) clamp(22px, 3.6vw, 72px) clamp(84px, 13vh, 140px);
+  }
+  .people[data-motion] .people-head,
+  .people[data-motion] .people-cards {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+  }
+  .people[data-motion] .people-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+  .people[data-motion] .people-kicker {
+    grid-column: 1 / -1;
+  }
+  .people[data-motion] .people-hint {
+    padding-bottom: 0.6em;
+  }
+  .people[data-motion] .people-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(16px, 1.8vw, 30px);
+    margin-top: auto;
+    padding-top: clamp(64px, 11vh, 120px);
+  }
+}
+
+@media (max-width: 760px) {
+  .people-cards {
+    grid-template-columns: 1fr;
+  }
+  .people[data-motion] {
+    padding: 46px 22px 96px;
+  }
+  .people[data-motion] .people-head {
+    padding-right: 26px;
+  } /* the strand's rail runs down the right */
+  .people[data-motion] .people-hint {
+    margin-top: 14px;
+  }
+  .people[data-motion] .people-cards {
+    gap: 44px;
+    margin-top: 72px;
+  }
+}

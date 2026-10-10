@@ -883,8 +883,8 @@ Particulars:
 
 Tasks: steps A to H. Extra exit checks:
 
-- [ ] e2e: Tab focuses each of the four cards in order
-- [ ] The knots unit test passes with every assertion from `check-people.mjs`
+- [x] e2e: Tab focuses each of the four cards in order
+- [x] The knots unit test passes with every assertion from `check-people.mjs`
 
 Commit: `feat(people): port section 5 to React`
 

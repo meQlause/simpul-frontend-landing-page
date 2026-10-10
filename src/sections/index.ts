@@ -4,6 +4,7 @@ import { Hero } from './01-hero/Hero';
 import { Problem } from './02-problem/Problem';
 import { Turn } from './03-turn/Turn';
 import { How } from './04-how-it-works/How';
+import { People } from './05-for-each-person/People';
 
 export interface SectionView {
   id: string;
@@ -18,10 +19,7 @@ export const SECTIONS: readonly SectionView[] = [
   { id: '02-problem', Component: Problem },
   { id: '03-turn', Component: Turn },
   { id: '04-how-it-works', Component: How },
-  {
-    id: '05-for-each-person',
-    Component: stubSection({ id: '05-for-each-person', className: 'people' }),
-  },
+  { id: '05-for-each-person', Component: People },
   {
     id: '06-quiet-by-design',
     Component: stubSection({ id: '06-quiet-by-design', className: 'quiet' }),
