@@ -1,0 +1,168 @@
+{
+  "view": {
+    "width": 1200,
+    "height": 660
+  },
+  "main": {
+    "x": 205,
+    "y": 75,
+    "height": 1380
+  },
+  "stats": [
+    {
+      "x": 42,
+      "y": 612,
+      "w": 72.2,
+      "h": 31,
+      "text": "1,284",
+      "font": "650 31px/31px Manrope, sans-serif",
+      "spacing": "-1px",
+      "color": "rgb(48, 75, 52)",
+      "bg": "rgb(255, 255, 255)"
+    },
+    {
+      "x": 281.3,
+      "y": 612,
+      "w": 35.6,
+      "h": 31,
+      "text": "48",
+      "font": "650 31px/31px Manrope, sans-serif",
+      "spacing": "-1px",
+      "color": "rgb(48, 75, 52)",
+      "bg": "rgb(255, 255, 255)"
+    },
+    {
+      "x": 520.5,
+      "y": 612,
+      "w": 47.7,
+      "h": 31,
+      "text": "156",
+      "font": "650 31px/31px Manrope, sans-serif",
+      "spacing": "-1px",
+      "color": "rgb(48, 75, 52)",
+      "bg": "rgb(255, 255, 255)"
+    },
+    {
+      "x": 759.8,
+      "y": 612,
+      "w": 15.4,
+      "h": 31,
+      "text": "7",
+      "font": "650 31px/31px Manrope, sans-serif",
+      "spacing": "-1px",
+      "color": "rgb(147, 130, 88)",
+      "bg": "rgb(252, 251, 246)"
+    }
+  ],
+  "statsRow": {
+    "x": 26,
+    "y": 562.5,
+    "w": 943,
+    "h": 126,
+    "text": "Messages understood1,284↗ 12.8%vs. the previous period\n        Active work4812 completed today\n        Updates delivered156BSRP+8To the right people, automatically\n        Needs attention73 areas you can improve",
+    "font": "400 13px/19.5px \"DM Sans\", sans-serif",
+    "spacing": "normal",
+    "color": "rgb(38, 60, 51)",
+    "bg": "rgb(248, 249, 246)"
+  },
+  "strip": {
+    "x": 26,
+    "y": 710.5,
+    "w": 943,
+    "h": 88.5,
+    "text": "A little attention.A smoother flow.Simpul found 3 areas to review.04No matching ruleChoose who needs to know02Names need clarificationHelp Simpul recognize names01Suggested categoryReview the pattern found",
+    "font": "400 13px/19.5px \"DM Sans\", sans-serif",
+    "spacing": "normal",
+    "color": "rgb(38, 60, 51)",
+    "bg": "rgb(248, 249, 246)"
+  },
+  "item": {
+    "x": 280.9,
+    "y": 732.3,
+    "w": 222.7,
+    "h": 45,
+    "text": "04No matching ruleChoose who needs to know",
+    "font": "400 13px/19.5px \"DM Sans\", sans-serif",
+    "spacing": "normal",
+    "color": "rgb(38, 60, 51)",
+    "bg": "rgb(248, 249, 246)"
+  },
+  "count": {
+    "x": 292.9,
+    "y": 741.3,
+    "w": 22,
+    "h": 27,
+    "text": "04",
+    "font": "500 18px/27px Manrope, sans-serif",
+    "spacing": "normal",
+    "color": "rgb(178, 189, 156)",
+    "bg": "rgb(248, 249, 246)"
+  },
+  "order": {
+    "x": 693.8,
+    "y": 305.3,
+    "w": 246.3,
+    "h": 48.5,
+    "text": "Mrs. Sri’s orderReady to ship · ORD-0091",
+    "font": "400 13px/19.5px \"DM Sans\", sans-serif",
+    "spacing": "normal",
+    "color": "rgb(38, 60, 51)",
+    "bg": "rgba(255, 255, 255, 0.94)"
+  },
+  "category": {
+    "x": 621,
+    "y": 442.6,
+    "w": 517,
+    "h": 42,
+    "text": "OrderFinanceStockReturnsQualityProduct samples",
+    "font": "400 11px/normal \"DM Sans\", sans-serif",
+    "spacing": "normal",
+    "color": "rgb(38, 60, 51)",
+    "bg": "rgb(255, 255, 255)"
+  },
+  "recipient": {
+    "x": 621,
+    "y": 119.7,
+    "w": 517,
+    "h": 42,
+    "text": "Siti Aminah · OperationsBudi Santoso · WarehouseRina Anggraini · SalesAndi Pratama · Finance",
+    "font": "400 11px/normal \"DM Sans\", sans-serif",
+    "spacing": "normal",
+    "color": "rgb(38, 60, 51)",
+    "bg": "rgb(255, 255, 255)"
+  },
+  "estimate": {
+    "x": 642,
+    "y": 280.3,
+    "w": 24.5,
+    "h": 43,
+    "text": "4",
+    "font": "650 43px/43px Manrope, sans-serif",
+    "spacing": "-1.5px",
+    "color": "rgb(220, 241, 200)",
+    "bg": "rgb(33, 78, 57)"
+  },
+  "save": {
+    "x": 1041.9,
+    "y": 605,
+    "w": 96.1,
+    "h": 37,
+    "text": "Save rule",
+    "font": "550 10px/15px \"DM Sans\", sans-serif",
+    "spacing": "normal",
+    "color": "rgb(255, 255, 255)",
+    "bg": "rgb(23, 100, 72)"
+  },
+  "toggle": {
+    "x": 1024.3,
+    "y": 478.3,
+    "w": 34,
+    "h": 20,
+    "text": "",
+    "font": "400 10px/15px \"DM Sans\", sans-serif",
+    "spacing": "normal",
+    "color": "rgb(140, 154, 128)",
+    "bg": "rgb(74, 134, 92)"
+  },
+  "savedActive": true
+}

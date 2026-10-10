@@ -1,0 +1,344 @@
+/* The panel. Still (and on phones): three captures of the real panel, each with its caption.
+   With motion on desktop (.panel[data-motion]): one pinned full screen, a single window scrubbed
+   through the three screens. Every image is the panel itself (scripts/capture-panel.mjs). */
+.panel {
+  background: var(--canvas);
+  overflow-x: clip;
+}
+.panel-head,
+.panel-screens {
+  max-width: var(--width);
+  margin-inline: auto;
+}
+.panel-kicker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.panel .eyebrow {
+  margin: 0;
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.panel-chapter {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--green);
+  white-space: pre;
+}
+.panel-title {
+  margin-top: clamp(18px, 3vh, 36px);
+  font-size: clamp(30px, 3.2vw, 46px);
+}
+.panel-lead {
+  margin-top: 16px;
+  max-width: 44ch;
+  font-size: clamp(15px, 1.15vw, 18px);
+}
+.panel-foot {
+  flex-wrap: wrap;
+  margin-top: 14px;
+  color: var(--soft);
+}
+.panel-foot::before {
+  content: '';
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+}
+.panel-stage {
+  display: none;
+}
+
+.panel-screens {
+  display: grid;
+  gap: 44px;
+  margin-top: 44px;
+} /* one under another, wide enough to read */
+.panel-shot img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line-mint);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 24px 44px -34px #163f3260;
+}
+.panel-shot h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  font: 700 17px/1.25 var(--font-title);
+  letter-spacing: -0.02em;
+  color: var(--green-dark);
+}
+.panel-shot h3 b {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 11px;
+}
+.panel-shot p {
+  margin-top: 4px;
+  padding-left: 32px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #5d6f63;
+}
+
+/* What index.js adds. */
+.panel-thread {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.panel-thread path {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.panel-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: 270px;
+  padding: 14px 15px 13px;
+  border: 1px solid var(--green);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 26px 50px -26px #163f3290;
+  pointer-events: none;
+  will-change: transform;
+}
+.panel-card p {
+  font-size: 11px;
+  color: var(--soft);
+}
+.panel-card p:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: var(--muted);
+}
+.panel-card p:first-child b {
+  font: 750 14px/1 var(--font-title);
+  letter-spacing: -0.04em;
+  color: var(--green);
+}
+.panel-card p:nth-child(2) {
+  margin-top: 8px;
+}
+.panel-card h4 {
+  margin: 4px 0 0;
+  font: 700 15px/1.3 var(--font-title);
+  color: var(--green-dark);
+}
+.panel-card p:last-child {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #5d6f63;
+}
+
+@media (min-width: 761px) {
+  .panel[data-motion] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: clamp(12px, 2vh, 20px) 0;
+    height: 100svh;
+    padding: clamp(18px, 3vh, 32px) clamp(22px, 3.6vw, 72px) clamp(16px, 2.6vh, 28px);
+  }
+  .panel[data-motion] .panel-head {
+    position: relative;
+    z-index: 1;
+    grid-column: 1;
+    grid-row: 1;
+    max-width: none;
+    margin: 0;
+    padding-right: 48px;
+  }
+  .panel[data-motion] .panel-title {
+    margin-top: 12px;
+    font-size: clamp(28px, 2.8vw, 40px);
+  }
+  .panel[data-motion] .panel-lead {
+    margin-top: 10px;
+    max-width: none;
+    font-size: 14.5px;
+  }
+  .panel[data-motion] .panel-foot {
+    margin-top: 6px;
+  }
+  /* The three captions sit beside the heading; the one being shown is in full colour. */
+  .panel[data-motion] .panel-screens {
+    position: relative;
+    z-index: 1;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-width: none;
+    margin: 0;
+    padding-left: 48px;
+  }
+  .panel[data-motion] .panel-shot {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 2px 14px;
+    padding: 9px 0 10px;
+    border-top: 1px solid var(--line-mint);
+    opacity: 0.42;
+    transition: opacity 0.4s;
+  }
+  .panel[data-motion] .panel-shot.is-active {
+    opacity: 1;
+  }
+  .panel[data-motion] .panel-shot::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+    height: 2px;
+    background: var(--green);
+    transform: scaleX(var(--p, 0));
+    transform-origin: 0 50%;
+  }
+  .panel[data-motion] .panel-shot img {
+    display: none;
+  }
+  .panel[data-motion] .panel-shot h3 {
+    margin: 0;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .panel[data-motion] .panel-shot p {
+    margin: 0;
+    padding: 0;
+    font-size: 13.5px;
+  }
+  .panel[data-motion] .panel-stage {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    perspective: 1500px;
+  }
+  .panel-window {
+    position: relative;
+    padding: 8px;
+    border: 1px solid var(--line-mint);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow:
+      0 50px 90px -50px #163f3280,
+      0 0 0 0 #17644800;
+    transition:
+      border-color 0.6s,
+      box-shadow 0.6s;
+    will-change: transform;
+  }
+  .panel-window.is-lit {
+    border-color: var(--green);
+    box-shadow:
+      0 50px 90px -50px #163f3280,
+      0 0 0 5px #17644818;
+  }
+  .panel-screen {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    overflow: hidden;
+    border-radius: 12px;
+    transform-origin: 0 0;
+    background: var(--canvas);
+  }
+  .panel-screen img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    max-width: none;
+  }
+  .panel-scroll {
+    position: absolute;
+    overflow: hidden;
+  }
+  .panel-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    will-change: transform;
+  }
+  .panel-rule {
+    opacity: 0;
+  }
+  .panel-num {
+    position: absolute;
+    white-space: nowrap;
+  }
+  .panel-ring {
+    position: absolute;
+    border: 2px solid var(--green);
+    border-radius: 12px;
+    box-shadow: 0 0 0 5px #1764481f;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .panel-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    opacity: 0;
+    fill: var(--green-dark);
+    stroke: #fff;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 4px 6px #163f3250);
+    transform-origin: 0 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .panel[data-motion] {
+    padding: 46px 22px 110px;
+  }
+  .panel[data-motion] .panel-head,
+  .panel[data-motion] .panel-screens {
+    position: relative;
+    z-index: 1;
+    padding-right: 22px;
+  } /* the thread's rail runs down the right */
+  .panel-screens {
+    gap: 34px;
+  }
+  .panel-card {
+    width: 196px;
+    padding: 11px 12px 10px;
+  }
+  .panel-card p:last-child {
+    display: none;
+  }
+}

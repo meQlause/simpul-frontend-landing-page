@@ -920,6 +920,12 @@ Tasks: steps A to H. Extra exit checks:
 - [x] The heap unit test passes with every assertion from `check-quiet.mjs`
 - [x] The stage stays in view for the same scroll distance as in the vanilla page (parity stops)
 
+Known issue (found in Phase 8, not fixed there): the section 6 stage pin releases late. Vanilla's sticky
+stage stops at the bottom of the column (`.quiet-body`); React's pinned stage stays about 126px lower at
+the 6 → 7 seam (scroll = section 7's top − 540 at 1440×900: stage bottom 360, column bottom 234). Section
+7's motion switched off gives identical numbers, so section 7 is not the cause. Fix in Phase 7's pin
+(`endTrigger` / `end` of `pinInView` in `quiet-by-design.motion.ts`), then re-check the seam.
+
 Commit: `feat(quiet): port section 6 to React`
 
 ---
@@ -943,6 +949,25 @@ Particulars:
 - `../landing/scripts/capture-panel.mjs` is **not** ported: the screens are copied as files.
 
 Tasks: steps A to H. Exit checks: 2.9.
+
+Exit checks (2.9, plus the particulars above):
+
+- [x] `npm run format` then `npm run check` exits 0
+- [x] `npm test` passes, and the parity test ran (not skipped) for `07-the-panel`
+- [x] `npm run build` exits 0 and prints `Prerendered dist/index.html`
+- [x] `npm run test:e2e` passes on desktop and phone, including `flow.spec.ts`
+- [x] `tests/unit/panel.test.ts` holds every assertion of `check-panel.mjs` (copy, three described screenshots, anchors, the seven screens as files, the figures, the count, the record, the saved rule)
+- [x] Pinned stretch (brief, "Done when" 3): the pin is 2.9 screen-heights in vanilla and React, full page and solo; asserted in `panel.spec.ts`. Earlier "4 heights" reading was a measurement error (see below)
+- [ ] `npm run parity -- 07` and `-- 07 phone`: no visible difference at any stop. With a 5s settle, all six desktop stops match, and phone stops 0, 0.2, 0.4, 0.8 and 1 match. Phone 0.6 differs only in 53 antialiased pixels on the rail's bottom curve at the same settled scroll (458px). The path and positions are identical, the two sites are each stable across runs, and this is sub-pixel rasterisation (2.8 step 4), not timing or geometry
+- [x] The seam with section 6 at the section top (0): the card and the window match on both sites. At −0.6 the offset is section 6's pin (A/B: identical with section 7's motion off), recorded as a Phase 7 known issue, not fixed here
+- [x] With `prefers-reduced-motion: reduce`, section 7 reads correctly, has no `data-motion`, and shows its three captions
+- [ ] The brief's "Done when" list holds item by item. Item 3 is ticked above. Items 1 and 2 are **for owner review**, not ticked: "a visitor believes the product exists" and "the three captions alone tell the story" are judgements, not checks
+- [x] No `console.error` or page error while scrolling the whole page (`flow.spec.ts`)
+- [x] `src/sections/index.ts` and `motions.ts` no longer use the stub for section 7
+
+Extra:
+
+- [x] The screens are copied as files; `capture-panel.mjs` is not ported
 
 Commit: `feat(panel): port section 7 to React`
 
@@ -1077,5 +1102,7 @@ Commit: `test(page): hold the port to no-JS, reduced motion, phone and performan
 ---
 
 ## Blocked
+
+(Empty. Add an entry here when rule 7 applies: phase, task, command, exact error, what was tried.)
 
 (Empty. Add an entry here when rule 7 applies: phase, task, command, exact error, what was tried.)
