@@ -9,4 +9,5 @@ export const PORTED: readonly string[] = [
   '06-quiet-by-design',
   '07-the-panel',
   '08-your-data',
+  '09-close',
 ];

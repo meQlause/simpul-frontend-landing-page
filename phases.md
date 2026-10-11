@@ -1027,11 +1027,11 @@ Particulars:
 
 Tasks: steps A to H. Extra exit checks:
 
-- [ ] e2e, keyboard only (Tab to the field, type, Enter): `someone@company.com` → "Thank you. You are
+- [x] e2e, keyboard only (Tab to the field, type, Enter): `someone@company.com` → "Thank you. You are
       on the pilot list."; `fail@company.com` → "That did not go through. Try again."; `nope` →
       "Enter a work email address."
-- [ ] e2e: with JavaScript disabled, the form, its label and the button are present
-- [ ] e2e: the hero's "Join the pilot" link lands on the form (`#join` in view)
+- [x] e2e: with JavaScript disabled, the form, its label and the button are present
+- [x] e2e: the hero's "Join the pilot" link lands on the form (`#join` in view)
 - [ ] `src/sections/stub.tsx` no longer exists; searching `src/` for `stubSection` or `still` finds
       nothing
 

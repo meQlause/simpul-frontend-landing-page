@@ -7,10 +7,7 @@ import { initPeople } from './05-for-each-person/people.motion';
 import { initQuiet } from './06-quiet-by-design/quiet-by-design.motion';
 import { initPanel } from './07-the-panel/the-panel.motion';
 import { initYourData } from './08-your-data/your-data.motion';
-
-// Not ported yet: the section has no motion. A port phase replaces it with the section's own,
-// e.g. { id: '08-your-data', receives: { form: 'card', thread: 'green' }, init: initYourData }.
-const still = (): undefined => undefined;
+import { initClose } from './09-close/close.motion';
 
 // Every section's motion, in page order. The ids and `receives` are the hand-off contract from
 // ../landing/README.md and must not change.
@@ -31,5 +28,5 @@ export const MOTIONS: readonly SectionMotion[] = [
   },
   { id: '07-the-panel', receives: { form: 'card', thread: 'green' }, init: initPanel },
   { id: '08-your-data', receives: { form: 'card', thread: 'green' }, init: initYourData },
-  { id: '09-close', receives: { form: 'card', thread: 'green' }, init: still },
+  { id: '09-close', receives: { form: 'card', thread: 'green' }, init: initClose },
 ];
