@@ -19,7 +19,7 @@ const WHOLE_PAGE = solo === 'page';
 const PAGE_STOPS = 24; // the whole page, from its top to its foot, in even steps
 // Let directional snapping and the smoother finish before comparing their final frames.
 const PAUSE = { step: 40, settle: 5000, load: 1500 };
-const STEP = 300;
+const STEP = 100; // a jump of 300 px across a pin's start can leave the smoother behind until the next scroll
 
 // The scroll length of the section: its own height, or its pin spacer's when it is pinned.
 async function span(page: Page): Promise<{ top: number; length: number }> {

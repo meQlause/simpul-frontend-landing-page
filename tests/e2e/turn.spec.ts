@@ -5,6 +5,7 @@ const OPEN_MS = 15_000;
 
 test('the pause control toggles its state and its label', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('html')).not.toHaveClass(/hero-boot/, { timeout: OPEN_MS }); // the motion has started
   const button = page.locator('.turn-pause');
   await expect(button).toBeVisible({ timeout: OPEN_MS });
   await expect(button).toHaveAttribute('aria-pressed', 'false');

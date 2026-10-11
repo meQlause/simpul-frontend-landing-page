@@ -34,3 +34,13 @@ in page order inside one `gsap.matchMedia`, exactly as the vanilla `main.js` doe
 
 The toolchain (`eslint.config.mjs`, `knip.json`, Prettier, commitlint, husky) is pspt's canonical
 React set, byte for byte the same as `../frontend`. Never edit those files.
+
+## Deploy
+
+`dist/` is a static site: upload it to any static host. Nothing runs on a server. Set these at
+build time (Vite reads them from `.env` or from the environment; see `.env.example`):
+
+- `VITE_PILOT_FORM_URL`: where the pilot form posts. Without it the form runs against a stand-in
+  that always succeeds, or fails when the address contains `fail`.
+- `VITE_FILM_URL`: where the film is hosted. The film is not in this repo, and the page fetches it
+  only when a visitor opens it.
