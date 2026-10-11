@@ -9,6 +9,13 @@ const VISIBLE_OPACITY = 0.05;
 const MAX_VISIBLE_CARRIED = 1;
 const WALK_TIMEOUT_MS = 240_000;
 
+// The scroll each pin adds, in screens (innerHeight), as the vanilla page pins them. Read once from ../landing:
+// desktop 02 4, 04 4.2, 07 2.9; phone 02 3.4. A pin in the port may not add more than its vanilla one.
+const VANILLA_PIN_SCREENS: Record<'desktop' | 'phone', Record<string, number>> = {
+  desktop: { '02-problem': 4, '04-how-it-works': 4.2, '07-the-panel': 2.9 },
+  phone: { '02-problem': 3.4 },
+};
+
 // The thread is sage until section 4 turns it green, and stays green below it.
 const colourAtBottom = PORTED.includes('04-how-it-works') ? 'green' : 'sage';
 
@@ -41,17 +48,8 @@ const visibleCarried = (page: Page) =>
 const threadColour = (page: Page) =>
   page.evaluate(() => document.querySelector<HTMLElement>('.thread-layer')?.dataset.color);
 
-// One step of the walk: scroll there, wait for the smoother, then hold the page to its rules.
-async function atStep(page: Page, top: number, errors: readonly string[]): Promise<void> {
-  await page.evaluate((target) => scrollTo(0, target), top);
-  await expect.poll(() => lag(page)).toBeLessThanOrEqual(SETTLED_PX);
-  await expect.poll(() => visibleCarried(page)).toBeLessThanOrEqual(MAX_VISIBLE_CARRIED);
-  await expect(page.locator('.thread-layer')).toHaveCount(1);
-  expect(errors, `errors at scroll ${top}`).toEqual([]);
-}
-
-test('the whole page is one unit, top to bottom and back', async ({ page }) => {
-  test.setTimeout(WALK_TIMEOUT_MS); // 61 smoothed stops; each waits for the smoother to settle
+// Every page error and console error, as the page raises them, for the walk to hold to.
+function collectErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -59,6 +57,44 @@ test('the whole page is one unit, top to bottom and back', async ({ page }) => {
       errors.push(message.text());
     }
   });
+  return errors;
+}
+
+// Each pin that adds more scroll than its vanilla one: the spacer's height beyond its own content, in screens.
+const pinOffenders = (page: Page, pins: Record<string, number>) =>
+  page.evaluate(
+    (allowed) =>
+      [...document.querySelectorAll<HTMLElement>('.pin-spacer')].flatMap((spacer) => {
+        const child = spacer.firstElementChild as HTMLElement | null;
+        const id = child?.closest<HTMLElement>('[data-section]')?.dataset.section ?? '';
+        const added = spacer.offsetHeight - (child?.offsetHeight ?? 0);
+        const limit = (allowed[id] ?? 0) * innerHeight;
+        return added > limit + 1
+          ? [`${id} adds ${Math.round(added)}px, vanilla ${Math.round(limit)}px`]
+          : [];
+      }),
+    pins,
+  );
+
+// One step of the walk: scroll there, wait for the smoother, then hold the page to its rules.
+async function atStep(
+  page: Page,
+  top: number,
+  errors: readonly string[],
+  pins: Record<string, number>,
+): Promise<void> {
+  await page.evaluate((target) => scrollTo(0, target), top);
+  await expect.poll(() => lag(page)).toBeLessThanOrEqual(SETTLED_PX);
+  await expect.poll(() => visibleCarried(page)).toBeLessThanOrEqual(MAX_VISIBLE_CARRIED);
+  await expect(page.locator('.thread-layer')).toHaveCount(1);
+  expect(errors, `errors at scroll ${top}`).toEqual([]);
+  expect(await pinOffenders(page, pins), `pins longer than vanilla at scroll ${top}`).toEqual([]);
+}
+
+test('the whole page is one unit, top to bottom and back', async ({ page }, testInfo) => {
+  test.setTimeout(WALK_TIMEOUT_MS); // 61 smoothed stops; each waits for the smoother to settle
+  const pins = VANILLA_PIN_SCREENS[testInfo.project.name as keyof typeof VANILLA_PIN_SCREENS];
+  const errors = collectErrors(page);
   await page.goto('/');
   await expect(page.locator('.thread-layer')).toHaveCount(1);
 
@@ -66,11 +102,11 @@ test('the whole page is one unit, top to bottom and back', async ({ page }) => {
   const down = [...Array(STEPS + 1).keys()].map((index) => Math.round((bottom * index) / STEPS));
   const up = down.slice(0, -1).reverse();
   for (const top of down) {
-    await atStep(page, top, errors);
+    await atStep(page, top, errors, pins);
   }
   expect(await threadColour(page)).toBe(colourAtBottom);
   for (const top of up) {
-    await atStep(page, top, errors);
+    await atStep(page, top, errors, pins);
   }
   expect(await threadColour(page)).toBe('sage');
 });
