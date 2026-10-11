@@ -8,13 +8,15 @@ import { chromium, type Page } from '@playwright/test';
 //        npm run parity -- 08 phone
 const [solo, device = 'desktop'] = process.argv.slice(2);
 if (!solo) {
-  throw new Error('Usage: npm run parity -- <section number, e.g. 08> [desktop|phone]');
+  throw new Error('Usage: npm run parity -- <section number, e.g. 08, or page> [desktop|phone]');
 }
 const VIEWPORTS = { desktop: { width: 1440, height: 900 }, phone: { width: 375, height: 812 } };
 const viewport = device === 'phone' ? VIEWPORTS.phone : VIEWPORTS.desktop;
 const SITES = { vanilla: 'http://localhost:5173', react: 'http://localhost:5174' };
 const STOP_COUNT = 5; // six screenshots, from the section arriving to it leaving
 const STOPS = [...Array(STOP_COUNT + 1).keys()].map((index) => index / STOP_COUNT);
+const WHOLE_PAGE = solo === 'page';
+const PAGE_STOPS = 24; // the whole page, from its top to its foot, in even steps
 // Let directional snapping and the smoother finish before comparing their final frames.
 const PAUSE = { step: 40, settle: 5000, load: 1500 };
 const STEP = 300;
@@ -41,8 +43,20 @@ async function walk(page: Page, target: number): Promise<void> {
 }
 
 async function capture(page: Page, site: keyof typeof SITES): Promise<void> {
-  await page.goto(`${SITES[site]}/?solo=${solo}`);
+  await page.goto(WHOLE_PAGE ? `${SITES[site]}/` : `${SITES[site]}/?solo=${solo}`);
   await page.waitForTimeout(PAUSE.load);
+  if (WHOLE_PAGE) {
+    // Measured after a settle at the foot: the page grows once its last section's text fills in, and the stops
+    // have to be the same absolute positions on both sites, so both sites are measured at their final height.
+    await page.evaluate(() => scrollTo(0, Number.MAX_SAFE_INTEGER));
+    await page.waitForTimeout(PAUSE.settle);
+    const bottom = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+    for (let index = 0; index < PAGE_STOPS; index++) {
+      await walk(page, (bottom * index) / (PAGE_STOPS - 1));
+      await page.screenshot({ path: `parity/page-${device}-${index}-${site}.png` });
+    }
+    return;
+  }
   const { top, length } = await span(page);
   for (const stop of STOPS) {
     await walk(page, Math.max(0, top - viewport.height + stop * (length + viewport.height)));
@@ -55,7 +69,9 @@ const browser = await chromium.launch();
 for (const site of ['vanilla', 'react'] as const) {
   const page = await browser.newPage({
     viewport,
-    isMobile: device === 'phone',
+    // Not isMobile: a mobile emulation zooms out a page that overflows sideways (the vanilla one does), and the
+    // zoom changes innerHeight, so every pin would be measured at a different height. The width is the same.
+    isMobile: false,
     hasTouch: device === 'phone',
   });
   await capture(page, site);
