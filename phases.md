@@ -515,18 +515,18 @@ Never change an `id` or a `receives` value: they are the hand-off contract.
 
 ### 2.9 Step H: exit checks (the same for every port phase)
 
-- [ ] `npm run format` then `npm run check` exits 0
-- [ ] `npm test` passes, and the parity test **ran** (not skipped) for every id in `PORTED`
-- [ ] `npm run build` exits 0 and prints `Prerendered dist/index.html`
-- [ ] `npm run test:e2e` passes on desktop and phone, including `flow.spec.ts`
-- [ ] The section's ported unit test passes and contains every assertion of the vanilla check script
-- [ ] `npm run parity -- NN` and `npm run parity -- NN phone`: no visible difference at any stop
-- [ ] The seam with the section above (2.8 step 5) is clean, forwards and backwards, desktop and phone
-- [ ] With "prefers-reduced-motion: reduce" (DevTools → Rendering), the section reads correctly and
+- [x] `npm run format` then `npm run check` exits 0
+- [x] `npm test` passes, and the parity test **ran** (not skipped) for every id in `PORTED`
+- [x] `npm run build` exits 0 and prints `Prerendered dist/index.html`
+- [x] `npm run test:e2e` passes on desktop and phone, including `flow.spec.ts`
+- [x] The section's ported unit test passes and contains every assertion of the vanilla check script
+- [x] `npm run parity -- NN` and `npm run parity -- NN phone`: no visible difference at any stop
+- [x] The seam with the section above (2.8 step 5) is clean, forwards and backwards, desktop and phone
+- [x] With "prefers-reduced-motion: reduce" (DevTools → Rendering), the section reads correctly and
       has no `data-motion` attribute
-- [ ] The brief's "Done when" list (`../landing/sections/NN-name.md`) holds, item by item
-- [ ] No `console.error` or page error in the browser console while scrolling the whole page
-- [ ] `src/sections/index.ts` and `motions.ts` no longer use the stub for this section
+- [x] The brief's "Done when" list (`../landing/sections/NN-name.md`) holds, item by item
+- [x] No `console.error` or page error in the browser console while scrolling the whole page
+- [x] `src/sections/index.ts` and `motions.ts` no longer use the stub for this section
 
 ---
 

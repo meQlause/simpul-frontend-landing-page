@@ -6,6 +6,7 @@ import { initHow } from './04-how-it-works/how.motion';
 import { initPeople } from './05-for-each-person/people.motion';
 import { initQuiet } from './06-quiet-by-design/quiet-by-design.motion';
 import { initPanel } from './07-the-panel/the-panel.motion';
+import { initYourData } from './08-your-data/your-data.motion';
 
 // Not ported yet: the section has no motion. A port phase replaces it with the section's own,
 // e.g. { id: '08-your-data', receives: { form: 'card', thread: 'green' }, init: initYourData }.
@@ -29,6 +30,6 @@ export const MOTIONS: readonly SectionMotion[] = [
     init: initQuiet,
   },
   { id: '07-the-panel', receives: { form: 'card', thread: 'green' }, init: initPanel },
-  { id: '08-your-data', receives: { form: 'card', thread: 'green' }, init: still },
+  { id: '08-your-data', receives: { form: 'card', thread: 'green' }, init: initYourData },
   { id: '09-close', receives: { form: 'card', thread: 'green' }, init: still },
 ];

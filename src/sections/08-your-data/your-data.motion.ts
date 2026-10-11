@@ -1,0 +1,531 @@
+import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
+import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+import { SplitText } from 'gsap/SplitText';
+import { all, one, SVG_NS, segment } from '../../motion/dom';
+import type { SectionMotion, Shared } from '../../motion/types';
+import {
+  BIT,
+  BITS,
+  CELL,
+  CURVE_IN,
+  CURVE_OUT,
+  DRAW,
+  EVERY,
+  FILL,
+  FLOW,
+  FORK,
+  FORKED,
+  FULL,
+  KNOT,
+  LINE,
+  PHONE,
+  RAIL,
+  STACK,
+  STAND,
+  TAKES,
+  THING,
+} from './your-data.tuning';
+
+// Your data. Desktop: the thread comes down between the headline and the lead and forks into two lines,
+// mirrored about the middle. The left line strings Simpul's three layers and sets one thing down on each;
+// the right line goes into the back of the customer's five, bits travel down it and each layer fills from
+// its back corner. The two lines then curve back, meet and are tied off. Phones: one rail down the right.
+// Not pinned. Everything is a function of one scroll clock, so scrolling back empties both sides again.
+
+type Curve = (progress: number) => number;
+interface Lines {
+  in: SVGPathElement;
+  out: SVGPathElement;
+}
+interface Cell {
+  el: SVGRectElement;
+  far: number;
+}
+interface Layer {
+  group: SVGGElement;
+  name: HTMLLIElement;
+  cells: Cell[];
+}
+interface Kept {
+  li: HTMLLIElement;
+  drawing: SVGSVGElement;
+  thing: SVGGElement;
+  shadow: SVGEllipseElement;
+  at: number; // how far along the left line its layer is, set by measure
+}
+interface Route {
+  flow: number[][]; // the right line's way in, for the bits (gsap's RawPath)
+  turn: number; // how much of the left line's way is the way in
+}
+// The geometry of one measure: where the lines stand, as positions in the section.
+interface Lay {
+  mid: number;
+  reach: number;
+  fork: number;
+  top: number;
+  foot: number;
+  knot: number;
+}
+
+// Everything the motion holds between calls, in one place.
+interface Scene {
+  root: HTMLElement;
+  phone: boolean;
+  curves: { inOut: Curve; out: Curve; land: Curve };
+  clock: { p: number };
+  splits: SplitText[];
+  chapter: HTMLElement;
+  chapterText: string;
+  svg: SVGSVGElement;
+  stack: SVGSVGElement;
+  stem: SVGPathElement;
+  right: Lines;
+  left: Lines & { down: SVGPathElement };
+  bits: SVGRectElement[];
+  end: SVGCircleElement;
+  kept: Kept[];
+  layers: Layer[];
+  route: Route;
+}
+
+const ARRIVED = 'is-in'; // a layer or a thing has arrived: its name is lit
+const EARLY = 'top 80%';
+const TITLE_AT = 'top 70%';
+const LEAD_AT = 'top 62%';
+const DRAWINGS_AT = 'top 78%';
+const BODY = '.data-body';
+const STAND_SHARE = STAND.centre / STAND.drawn;
+
+// Text and drawings arrive as they come into view; scrolling back takes them away again.
+const when = (trigger: Element, start: string) => ({
+  trigger,
+  start,
+  toggleActions: 'play none none reverse',
+});
+
+function hideStubCopy(root: HTMLElement, shared: Shared): void {
+  if (root.contains(shared.carried.el)) {
+    shared.gsap.set(shared.carried.el, { autoAlpha: 0 });
+  }
+}
+
+// ---- Building the drawing: the thread's paths, the bits and the knot, all on the section's own svg ----
+
+function pathIn(svg: SVGSVGElement): SVGPathElement {
+  const node = svg.appendChild(document.createElementNS(SVG_NS, 'path'));
+  node.setAttribute('pathLength', '1'); // lets the draw run from 1 to 0 whatever the real length
+  return node;
+}
+
+function squareIn(svg: SVGSVGElement): SVGRectElement {
+  const node = svg.appendChild(document.createElementNS(SVG_NS, 'rect'));
+  node.setAttribute('width', String(BIT.size));
+  node.setAttribute('height', String(BIT.size));
+  node.setAttribute('rx', String(BIT.size / BIT.corner));
+  return node;
+}
+
+// The thread's svg goes in first, so it sits behind the section's words and layers.
+function drawingOf(root: HTMLElement, bitCount: number) {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('class', 'data-threads');
+  svg.setAttribute('aria-hidden', 'true');
+  root.insertBefore(svg, root.firstChild);
+  const stem = pathIn(svg);
+  const right = { in: pathIn(svg), out: pathIn(svg) }; // its way down is behind the layers
+  const left = { in: pathIn(svg), down: pathIn(svg), out: pathIn(svg) };
+  const bits = Array.from({ length: bitCount }, () => squareIn(svg));
+  const end = svg.appendChild(document.createElementNS(SVG_NS, 'circle')); // where the thread is tied off
+  end.setAttribute('r', String(KNOT.radius));
+  return { svg, stem, right, left, bits, end };
+}
+
+function keptOf(root: HTMLElement): Kept[] {
+  return all<HTMLLIElement>(root, '.data-kept li').map((node) => ({
+    li: node,
+    drawing: one<SVGSVGElement>(node, 'svg'),
+    thing: one<SVGGElement>(node, '[data-thing]'),
+    shadow: one<SVGEllipseElement>(node, '[data-shadow]'),
+    at: 0,
+  }));
+}
+
+// The drawing lists its layers from the bottom up; here they are top to bottom, with their names.
+function layersOf(root: HTMLElement): Layer[] {
+  const names = all<HTMLLIElement>(root, '.data-layers li');
+  return all<SVGGElement>(root, '[data-layer]')
+    .reverse()
+    .map((group, index) => ({
+      group,
+      name: names[index],
+      cells: all<SVGRectElement>(group, '.cell').map((node) => ({
+        el: node,
+        far: Number(node.dataset.far),
+      })),
+    }));
+}
+
+function buildScene(root: HTMLElement, shared: Shared): Scene {
+  const { gsap, conditions } = shared;
+  const chapter = one(root, '.data-chapter');
+  const drawing = drawingOf(root, conditions.phone ? 0 : BITS);
+  const layers = layersOf(root);
+  // The cells are the only elements the motion scales: each turns about its own centre.
+  layers.forEach((layer) =>
+    layer.cells.forEach(({ el }) => {
+      el.style.transformBox = 'fill-box';
+      el.style.transformOrigin = '50% 50%';
+    }),
+  );
+  return {
+    root,
+    phone: conditions.phone,
+    curves: {
+      inOut: gsap.parseEase('power2.inOut'),
+      out: gsap.parseEase('power3.out'),
+      land: gsap.parseEase('back.out(1.6)'),
+    },
+    clock: { p: 0 },
+    splits: [],
+    chapter,
+    chapterText: chapter.textContent ?? '',
+    ...drawing,
+    stack: one<SVGSVGElement>(root, '[data-stack] svg'),
+    kept: keptOf(root),
+    layers,
+    route: { flow: [], turn: 0 },
+  };
+}
+
+// ---- The text and drawings arriving, once each, as the section comes into view ----
+
+// Every split the section makes is kept, so the cleanup can put the words back.
+function wordsOf(scene: Scene, target: Element): Element[] {
+  const result = SplitText.create(target, { type: 'words', mask: 'words' });
+  scene.splits.push(result);
+  return result.words;
+}
+
+function revealCopy(scene: Scene, shared: Shared): void {
+  const { gsap, ease } = shared;
+  const { root, chapter, chapterText } = scene;
+  gsap.fromTo(
+    chapter,
+    { scrambleText: '' },
+    {
+      scrambleText: { text: chapterText, chars: 'upperCase', speed: 0.5 },
+      duration: 1.4,
+      scrollTrigger: when(root, EARLY),
+    },
+  );
+  gsap.from(one(root, '.data .eyebrow'), {
+    autoAlpha: 0,
+    x: -14,
+    duration: 0.6,
+    scrollTrigger: when(root, EARLY),
+  });
+  gsap.from(wordsOf(scene, one(root, '.data-title')), {
+    yPercent: 115,
+    rotation: 4,
+    transformOrigin: '0 100%',
+    stagger: 0.06,
+    duration: 0.95,
+    ease: 'power4.out',
+    scrollTrigger: when(root, TITLE_AT),
+  });
+  gsap.from(wordsOf(scene, one(root, '.data-lead')), {
+    yPercent: 100,
+    stagger: 0.012,
+    duration: 0.7,
+    ease: ease.out,
+    scrollTrigger: when(root, LEAD_AT),
+  });
+}
+
+function revealHeadings(scene: Scene, shared: Shared): void {
+  const body = one(scene.root, BODY);
+  const words = all(scene.root, '.data h3').flatMap((heading) => wordsOf(scene, heading));
+  shared.gsap.from(words, {
+    yPercent: 110,
+    stagger: 0.03,
+    duration: 0.6,
+    scrollTrigger: when(body, EARLY),
+  });
+}
+
+// The five empty layers settle into place, the lowest first, before the thread reaches them.
+function revealDrawings(scene: Scene, shared: Shared): void {
+  const { gsap, ease } = shared;
+  const body = one(scene.root, BODY);
+  const scrollTrigger = when(body, DRAWINGS_AT);
+  gsap.from(
+    scene.kept.map((item) => item.drawing),
+    { autoAlpha: 0, y: -46, stagger: 0.12, duration: 1, ease: ease.long, scrollTrigger },
+  );
+  gsap.from(scene.layers.map((layer) => layer.group).reverse(), {
+    autoAlpha: 0,
+    y: -46,
+    stagger: 0.09,
+    duration: 1,
+    ease: ease.long,
+    scrollTrigger,
+  });
+}
+
+// ---- Measuring: where the stack sits decides where each line stands ----
+
+function boxIn(root: HTMLElement, node: Element) {
+  const box = node.getBoundingClientRect();
+  const origin = root.getBoundingClientRect();
+  return { x: box.left - origin.left, y: box.top - origin.top, w: box.width, h: box.height };
+}
+
+function tieAt(scene: Scene, posX: number, posY: number): void {
+  scene.end.setAttribute('cx', String(posX));
+  scene.end.setAttribute('cy', String(posY));
+}
+
+// Phones: one rail down the right, as in the sections around it, tied off at its foot.
+function measureRail(scene: Scene, width: number, height: number): void {
+  const mid = width / 2;
+  const rail = width - RAIL.inset;
+  const foot = height - RAIL.foot;
+  scene.stem.setAttribute(
+    'd',
+    `M${mid},0 C${mid},${RAIL.first} ${rail},${RAIL.second} ${rail},${RAIL.reach} L${rail},${foot}`,
+  );
+  tieAt(scene, rail, foot);
+}
+
+function forkLines(scene: Scene, width: number, height: number): Lay {
+  const { root, stack } = scene;
+  const mid = width / 2;
+  const box = boxIn(root, stack);
+  const top = box.y + STACK.top * (box.h / STACK.height);
+  const foot = box.y + STACK.foot * (box.h / STACK.height);
+  const head = boxIn(root, one(root, '[data-top]'));
+  return {
+    mid,
+    reach: box.x + box.w / 2 - mid, // the layers decide how far each line stands from the middle
+    fork: Math.min(top - FORK.above, head.y + head.h + FORK.under),
+    top,
+    foot,
+    knot: foot + (height - foot) * KNOT.share,
+  };
+}
+
+// The same curves on both sides, mirrored: one even S in, one even S out to where they are tied.
+function intoPath(lay: Lay, lineX: number): string {
+  const { mid, fork, top } = lay;
+  const first = fork + (top - fork) * CURVE_IN.first;
+  const second = fork + (top - fork) * CURVE_IN.second;
+  return `M${mid},${fork} C${mid},${first} ${lineX},${second} ${lineX},${top}`;
+}
+
+function awayPath(lay: Lay, lineX: number): string {
+  const { mid, foot, knot } = lay;
+  const first = foot + (knot - foot) * CURVE_OUT.first;
+  const second = foot + (knot - foot) * CURVE_OUT.second;
+  return `M${lineX},${foot} C${lineX},${first} ${mid},${second} ${mid},${knot}`;
+}
+
+function drawLines(scene: Scene, lay: Lay): void {
+  const { mid, fork, top, foot, knot, reach } = lay;
+  const rightX = mid + reach;
+  const leftX = mid - reach;
+  scene.stem.setAttribute('d', `M${mid},0 L${mid},${fork}`);
+  scene.right.in.setAttribute('d', intoPath(lay, rightX));
+  scene.right.out.setAttribute('d', awayPath(lay, rightX));
+  scene.left.in.setAttribute('d', intoPath(lay, leftX));
+  scene.left.down.setAttribute('d', `M${leftX},${top} L${leftX},${foot}`);
+  scene.left.out.setAttribute('d', awayPath(lay, leftX));
+  tieAt(scene, mid, knot);
+}
+
+// The right line's way in, measured for the bits; and how much of the left line is the way in.
+function routeOf(scene: Scene, lay: Lay): Route {
+  const { mid, fork, top, foot, reach } = lay;
+  const intoRight = intoPath(lay, mid + reach).replace(/^M[^C]*/, '');
+  const flow = MotionPathPlugin.getRawPath(`M${mid},0 L${mid},${fork} ${intoRight}`);
+  MotionPathPlugin.cacheRawPathMeasurements(flow);
+  const curve = scene.left.in.getTotalLength();
+  return { flow, turn: curve / (curve + foot - top) };
+}
+
+// Each of Simpul's layers is placed where its own line reaches it.
+function placeKept(scene: Scene, lay: Lay, turn: number): void {
+  const { top, foot } = lay;
+  scene.kept.forEach((item) => {
+    const box = boxIn(scene.root, item.li);
+    item.at = turn + (1 - turn) * segment(box.y + box.h * STAND_SHARE - top, 0, foot - top);
+  });
+}
+
+function measureFork(scene: Scene, width: number, height: number): void {
+  scene.root.style.removeProperty('--reach');
+  const lay = forkLines(scene, width, height);
+  scene.root.style.setProperty('--reach', `${lay.reach}px`);
+  drawLines(scene, lay);
+  scene.route = routeOf(scene, lay);
+  placeKept(scene, lay, scene.route.turn);
+}
+
+function measure(scene: Scene): void {
+  const { root, svg } = scene;
+  const width = root.offsetWidth;
+  const height = root.offsetHeight;
+  svg.setAttribute('width', String(width));
+  svg.setAttribute('height', String(height));
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  if (scene.phone) {
+    measureRail(scene, width, height);
+  } else {
+    measureFork(scene, width, height);
+  }
+}
+
+// ---- Drawing: one clock, every line and layer a function of it ----
+
+// The line is drawn by its dash; it is hidden until it has any length, so no round cap shows as a dot.
+function drawLine(line: SVGPathElement, share: number): void {
+  line.style.strokeDasharray = `${share} 2`;
+  line.style.visibility = share > LINE.hidden ? 'visible' : 'hidden';
+}
+
+// One thing arriving on its layer: it comes down, lands with a little weight, and is named.
+function landThing(scene: Scene, item: Kept, share: number): void {
+  const lands = scene.curves.land(share);
+  item.thing.style.opacity = String(segment(share, 0, THING.shows));
+  item.thing.style.transform = `translateY(${-THING.lift * (1 - lands)}px) scale(${THING.small + THING.grow * lands})`;
+  item.shadow.style.opacity = String(segment(share, THING.shadowFrom, 1));
+  item.li.classList.toggle(ARRIVED, share > THING.inAt);
+}
+
+function landKept(scene: Scene, tip: number): void {
+  scene.kept.forEach((item) => {
+    landThing(scene, item, segment(tip, item.at - THING.before, item.at + THING.after));
+  });
+}
+
+// The bits go down the right line for as long as the layers are filling, and vanish before it ends.
+function runBits(scene: Scene, progress: number): void {
+  const flowing =
+    segment(progress, FLOW.from, FORKED) * (1 - segment(progress, FULL - FLOW.stop, FULL));
+  scene.bits.forEach((bit, index) => {
+    const time = (progress * FLOW.laps + index / BITS) % 1;
+    const spot = MotionPathPlugin.getPositionOnPath(scene.route.flow, time);
+    bit.setAttribute('x', String(spot.x - BIT.half));
+    bit.setAttribute('y', String(spot.y - BIT.half));
+    const fade = segment(time, 0, FLOW.fadeIn) * (1 - segment(time, FLOW.fadeOut, 1));
+    bit.style.opacity = String(flowing * fade);
+  });
+}
+
+function renderFork(scene: Scene, progress: number): void {
+  const { inOut } = scene.curves;
+  const { stem, right, left, route } = scene;
+  const forked = inOut(segment(progress, DRAW.forkFrom, FORKED));
+  const parted = inOut(segment(progress, FULL, 1));
+  // As the left line reaches each of Simpul's layers, its one thing is set down on it.
+  const tip = route.turn * forked + (1 - route.turn) * segment(progress, FORKED, FULL);
+  drawLine(stem, inOut(segment(progress, 0, DRAW.stemTo)));
+  drawLine(right.in, forked);
+  drawLine(left.in, forked);
+  drawLine(left.down, segment(progress, FORKED, FULL));
+  drawLine(right.out, parted);
+  drawLine(left.out, parted);
+  runBits(scene, progress);
+  landKept(scene, tip);
+}
+
+function renderRail(scene: Scene, progress: number): void {
+  drawLine(scene.stem, progress);
+  scene.kept.forEach((item, index) => {
+    const from = PHONE.thingFrom + PHONE.thingEvery * index;
+    landThing(scene, item, segment(progress, from, PHONE.thingTo + PHONE.thingEvery * index));
+  });
+}
+
+// Each cell fills from the back corner: the far ones start later and grow out of the front of the layer.
+function fillLayer(scene: Scene, layer: Layer, share: number): void {
+  layer.cells.forEach(({ el, far }) => {
+    const begin = far * CELL.spread;
+    const alpha = scene.curves.out(segment(share, begin, begin + CELL.takes));
+    el.style.opacity = String(alpha);
+    el.style.transform = `scale(${CELL.small + CELL.grow * alpha})`;
+  });
+}
+
+function renderLayers(scene: Scene, progress: number): void {
+  const from = scene.phone ? PHONE.layersFrom : FORKED + FILL.after;
+  scene.layers.forEach((layer, index) => {
+    const start = from + EVERY * index;
+    const share = segment(progress, start, start + TAKES);
+    fillLayer(scene, layer, share);
+    layer.name.classList.toggle(ARRIVED, share > FILL.nameAt);
+  });
+}
+
+function render(scene: Scene): void {
+  const { p } = scene.clock;
+  const tied = scene.curves.land(segment(p, DRAW.tieFrom, 1));
+  scene.end.style.opacity = String(segment(p, DRAW.tieFrom, DRAW.tieTo));
+  scene.end.style.transform = `scale(${tied})`;
+  if (scene.phone) {
+    renderRail(scene, p);
+  } else {
+    renderFork(scene, p);
+  }
+  renderLayers(scene, p);
+}
+
+// The clock is the one scroll: the section is not pinned, it plays while its own stretch passes.
+function followScroll(scene: Scene, shared: Shared): () => void {
+  const { gsap, ScrollTrigger } = shared;
+  gsap.to(scene.clock, {
+    p: 1,
+    ease: 'none',
+    onUpdate: () => render(scene),
+    scrollTrigger: { trigger: scene.root, start: 'top 70%', end: 'bottom 98%', scrub: 0.6 },
+  });
+  const onRefresh = () => {
+    measure(scene);
+    render(scene);
+  };
+  ScrollTrigger.addEventListener('refresh', onRefresh);
+  return () => ScrollTrigger.removeEventListener('refresh', onRefresh);
+}
+
+// Puts the section back as the markup has it: the words, the drawing, the names and the chapter.
+function restore(scene: Scene): void {
+  scene.splits.forEach((result) => result.revert());
+  scene.svg.remove();
+  all<Element>(scene.root, '.cell, [data-thing], [data-shadow]').forEach((node) =>
+    node.removeAttribute('style'),
+  );
+  const lit = [...scene.layers.map((layer) => layer.name), ...scene.kept.map((item) => item.li)];
+  lit.forEach((node) => node.classList.remove(ARRIVED));
+  scene.root.style.removeProperty('--reach');
+  scene.chapter.textContent = scene.chapterText;
+  delete scene.root.dataset.motion;
+}
+
+export const initYourData: SectionMotion['init'] = (root, shared) => {
+  if (shared.conditions.reduce) {
+    return undefined; // the headline, the three things, five full layers and their names
+  }
+  shared.gsap.registerPlugin(MotionPathPlugin, SplitText, ScrambleTextPlugin);
+  root.dataset.motion = '';
+  hideStubCopy(root, shared);
+  const scene = buildScene(root, shared);
+  revealCopy(scene, shared);
+  revealHeadings(scene, shared);
+  revealDrawings(scene, shared);
+  measure(scene);
+  const stopScroll = followScroll(scene, shared);
+  render(scene);
+  return () => {
+    stopScroll();
+    restore(scene);
+  };
+};

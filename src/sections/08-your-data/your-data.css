@@ -1,0 +1,343 @@
+/* Your data. Still: the headline, Simpul's three things each on its own layer, and the customer's
+   five full layers with their names. With motion (.data[data-motion]) on a desktop: the thread comes
+   down between the headline and the lead and forks into two mirrored lines. The left line strings
+   Simpul's three layers and sets one thing down on each; the right one goes through the customer's
+   five, which fill as it passes. Below, the two lines meet again and are tied off: the thread ends here. */
+.data {
+  --plate: min(29svh, 270px);
+  background: var(--canvas);
+  overflow-x: clip;
+} /* how wide one layer is drawn */
+.data-kicker,
+.data-top,
+.data-body {
+  position: relative;
+  z-index: 1;
+  max-width: var(--width);
+  margin-inline: auto;
+}
+.data-kicker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.data .eyebrow {
+  margin: 0;
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.data-chapter {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--green);
+  white-space: pre;
+}
+.data-title {
+  margin-top: clamp(22px, 4vh, 44px);
+  font-size: clamp(32px, 3.8vw, 58px);
+}
+.data-lead {
+  max-width: 40ch;
+}
+.data h3 {
+  font: 700 clamp(17px, 1.3vw, 20px)/1.2 var(--font-title);
+  letter-spacing: -0.02em;
+  color: var(--green-dark);
+}
+.data-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 48px clamp(28px, 5vw, 80px);
+  margin-top: clamp(48px, 8vh, 90px);
+}
+
+/* The one piece both sides are built from: a layer of cells. */
+.plate {
+  fill: var(--surface);
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.plate-edge {
+  fill: #cfe0c2;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.cell {
+  fill: var(--lime);
+}
+.cell--b {
+  fill: #8fc27c;
+}
+.cell--c {
+  fill: var(--green);
+}
+.cell--empty,
+.ghost {
+  fill: #eef3ea;
+}
+
+/* Simpul's side: three layers, each empty but for the one thing standing on it. */
+.data-kept {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.data-kept li {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font: 650 clamp(17px, 1.5vw, 23px)/1.15 var(--font-title);
+  letter-spacing: -0.02em;
+  color: var(--green-dark);
+}
+.data-kept svg {
+  flex: none;
+  width: 150px;
+  height: auto;
+  overflow: visible;
+}
+.data-kept span {
+  transition: opacity 0.5s;
+}
+.thing-fill {
+  fill: var(--lime);
+  stroke: var(--green);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+.thing-line {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.thing-hole {
+  fill: var(--surface);
+  stroke: var(--green);
+  stroke-width: 4;
+}
+.thing-shadow {
+  fill: #cfe0c2;
+}
+.thing {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* The customer's side: the five layers, and the name of each beside it. */
+.data-yours {
+  margin: 0;
+  justify-self: center;
+}
+.data-yours h3 {
+  margin-bottom: 6px;
+}
+.data-stack {
+  --names: clamp(150px, 15vw, 230px);
+  position: relative;
+  width: fit-content;
+  padding-right: var(--names);
+}
+.data-stack svg {
+  width: var(--plate);
+  height: auto;
+  overflow: visible;
+}
+.data-layers li {
+  position: absolute;
+  left: calc((100% - var(--names)) * 0.965);
+  translate: 0 -50%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 650 clamp(17px, 1.5vw, 23px)/1 var(--font-title);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  color: var(--green-dark);
+  transition: opacity 0.5s;
+}
+.data-layers li::before {
+  content: '';
+  flex: none;
+  width: clamp(22px, 2.6vw, 44px);
+  height: 1.5px;
+  background: var(--green);
+  transform-origin: 0 50%;
+  transition: transform 0.5s;
+}
+
+/* ---------- With motion: index.js draws the thread, sends data down it and fills the cells ---------- */
+.data-threads {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.data-threads path {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.data-threads rect {
+  fill: var(--green);
+}
+.data-threads circle {
+  fill: var(--green);
+  stroke: var(--canvas);
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.data[data-motion] .data-kept li:not(.is-in) span {
+  opacity: 0.22;
+}
+.data[data-motion] .data-layers li:not(.is-in) {
+  opacity: 0.22;
+}
+.data[data-motion] .data-layers li:not(.is-in)::before {
+  transform: scaleX(0);
+}
+
+@media (min-width: 761px) {
+  .data[data-motion] {
+    min-height: 100svh;
+    padding: clamp(42px, 6vh, 76px) clamp(22px, 3.6vw, 72px) clamp(110px, 16vh, 170px);
+  }
+  .data[data-motion] :is(.data-kicker, .data-top, .data-body) {
+    max-width: none;
+    margin-inline: 0;
+  }
+  /* The headline and the lead stand either side of the thread. */
+  .data[data-motion] .data-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .data[data-motion] .data-title {
+    padding-right: 40px;
+  }
+  .data[data-motion] .data-lead {
+    margin-top: clamp(30px, 5vh, 56px);
+    padding-left: clamp(40px, 5vw, 84px);
+    max-width: 600px;
+  }
+  /* Below, the two sides mirror each other about the middle of the page. --reach is how far each
+     line stands from the middle; index.js measures it from where the five layers sit. */
+  .data[data-motion] .data-body {
+    display: block;
+    margin-top: clamp(130px, 19vh, 180px);
+  }
+  .data[data-motion] .data-yours {
+    position: relative;
+    width: fit-content;
+    margin-left: calc(50% + clamp(60px, 7vw, 110px));
+  }
+  .data[data-motion] .data-ours {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: calc(50% - var(--reach, 250px));
+  }
+  /* Simpul's three layers sit on its line level with the first, third and fifth of the customer's,
+     drawn at the same size. Each name stands outside it, as on the other side. */
+  .data[data-motion] .data-kept {
+    display: block;
+    margin: 0;
+  }
+  .data[data-motion] .data-kept li {
+    position: absolute;
+    right: calc(var(--plate) / -2);
+    top: var(--at);
+    translate: 0 -52.08%;
+    display: block;
+    width: var(--plate);
+  }
+  .data[data-motion] .data-kept svg {
+    display: block;
+    width: 100%;
+  }
+  .data[data-motion] .data-kept span {
+    position: absolute;
+    right: 96.5%;
+    top: 52.08%;
+    translate: 0 -50%;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 12px;
+    width: max-content;
+    max-width: 11.5em;
+    text-align: right;
+  }
+  .data[data-motion] .data-kept span::before {
+    content: '';
+    flex: none;
+    width: clamp(22px, 2.6vw, 44px);
+    height: 1.5px;
+    background: var(--green);
+    transform-origin: 100% 50%;
+    transition: transform 0.5s;
+  }
+  .data[data-motion] .data-kept li:not(.is-in) span::before {
+    transform: scaleX(0);
+  }
+  /* The two captions stand level, each over its own names, clear of the lines. */
+  .data[data-motion] :is(.data-ours, .data-yours) h3 {
+    position: absolute;
+    top: 0;
+    margin: 0;
+    font-size: clamp(13px, 1vw, 15px);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--soft);
+    white-space: nowrap;
+  }
+  .data[data-motion] .data-ours h3 {
+    right: calc(var(--plate) * 0.465 + clamp(22px, 2.6vw, 44px) + 12px);
+  }
+  .data[data-motion] .data-yours h3 {
+    left: calc((100% - clamp(150px, 15vw, 230px)) * 0.965 + clamp(22px, 2.6vw, 44px) + 12px);
+  }
+}
+
+@media (max-width: 760px) {
+  .data {
+    --plate: 190px;
+  }
+  .data-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 44px;
+  }
+  .data-yours {
+    justify-self: start;
+  }
+  .data-kept svg {
+    width: 118px;
+  }
+  .data-stack {
+    --names: 138px;
+  }
+  .data-layers li {
+    gap: 8px;
+    font-size: 15px;
+  }
+  .data-layers li::before {
+    width: 14px;
+  }
+  .data[data-motion] {
+    padding: 46px 22px 96px;
+  }
+  .data[data-motion] :is(.data-kicker, .data-top, .data-body) {
+    padding-right: 22px;
+  } /* the thread's rail runs down the right */
+}
