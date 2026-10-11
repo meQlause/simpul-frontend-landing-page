@@ -16,6 +16,7 @@ import {
   type Pose,
   type Track,
 } from './problem.path';
+import { buildRedLines, measureRedLines, type RedLines } from './problem.lost';
 import { simulate } from './problem.physics';
 import {
   HALF,
@@ -77,6 +78,7 @@ interface Scene {
   svg: SVGSVGElement;
   thread: SVGPathElement;
   slackEnd: SVGPathElement;
+  redLines: RedLines;
   pile: HTMLElement;
   bubbles: HTMLElement[];
   tilts: number[];
@@ -171,6 +173,7 @@ function buildScene(root: HTMLElement, shared: Shared, faces: HTMLElement[]): Sc
 
   root.prepend(svg);
   root.append(pile, order);
+  const redLines = buildRedLines(root);
   const people = all(root, '.chain-person');
 
   return {
@@ -190,6 +193,7 @@ function buildScene(root: HTMLElement, shared: Shared, faces: HTMLElement[]): Sc
     svg,
     thread,
     slackEnd,
+    redLines,
     pile,
     bubbles,
     tilts: bubbles.map(() => wobbleOf(random, LAYOUT.tilt)),
@@ -227,6 +231,7 @@ function measure(scene: Scene): void {
   const track = matter && !phone ? simulate(matter, geo, phone) : settle(geo, eases, phone);
 
   scene.live = { geo, track };
+  measureRedLines(scene.redLines, root);
   const [exitX, exitY, exitAngle] = orderOn(scene.live, SIM.seconds);
 
   Object.assign(order.dataset, { exitX, exitY, exitAngle: (exitAngle * DEGREES) / Math.PI });
@@ -409,12 +414,11 @@ function snap(scene: Scene, timeline: gsap.core.Timeline): void {
       { rotation: -38, autoAlpha: 0.45, duration: HAND.breakLink, ease: 'power2.in' },
       TIME.snap + HAND.breakHalf,
     )
-    .to(broken, { '--lost': 1, '--fill': 0, duration: 0.4 }, TIME.snap + HAND.breakRed)
     .to(warehouse, RESTING, TIME.snap + HAND.reset);
 }
 
 function lost(scene: Scene, timeline: gsap.core.Timeline): void {
-  const { faces, strongs, people, halves } = scene;
+  const { faces, strongs, people, redLines } = scene;
 
   LOST_TILES.forEach(({ tile }, step) => {
     const when = TIME.snap + HAND.lostStart + step * HAND.lostStep;
@@ -428,8 +432,15 @@ function lost(scene: Scene, timeline: gsap.core.Timeline): void {
         when + HAND.lostDelay,
       );
 
-    if (halves[tile]) {
-      timeline.to(halves[tile], { '--lost': 1, duration: 0.3 }, when + HAND.lostDelay);
+    const red = redLines.lines.find((item) => item.tile === tile);
+
+    if (red) {
+      timeline.fromTo(
+        red.line,
+        { strokeDashoffset: 1 },
+        { strokeDashoffset: 0, duration: 0.3, ease: 'none' },
+        when + HAND.lostDelay,
+      );
     }
   });
 }

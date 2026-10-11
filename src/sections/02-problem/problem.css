@@ -76,6 +76,12 @@
   font-size: clamp(34px, min(5.4vw, 9vh), 110px);
   letter-spacing: -0.05em;
 }
+/* SplitText clips each word to its mask (a direct child of each line); the word box runs below the
+   line box, so the mask gets room under it. Padding plus the matching margin keeps the layout the same. */
+.problem[data-motion] .headline span > div {
+  padding-bottom: 0.4em;
+  margin-bottom: -0.4em;
+}
 .problem[data-motion] .chain {
   position: relative;
   z-index: 3;
@@ -136,7 +142,7 @@
   height: 2px;
   background:
     linear-gradient(var(--green), var(--green)) 0 0 / calc(var(--fill, 0) * 100%) 100% no-repeat,
-    color-mix(in srgb, var(--danger) calc(var(--lost, 0) * 70%), var(--line-mint));
+    var(--line-mint);
 }
 /* Not reached: a red mark where the tick would have been. */
 .problem[data-motion] .chain-person::before {
@@ -246,6 +252,22 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+/* The lost links: red strokes drawn over them by scroll, above the chain. */
+.problem-lost {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.problem-lost path {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 .problem-pile {
   position: absolute;

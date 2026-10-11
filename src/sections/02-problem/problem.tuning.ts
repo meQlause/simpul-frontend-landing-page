@@ -43,7 +43,6 @@ export const HAND = {
   lostOver: 0.7,
   breakLink: 0.35,
   breakHalf: 0.05,
-  breakRed: 0.15,
   reset: 0.3,
   wardOff: 0.35,
 };
