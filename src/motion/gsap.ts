@@ -19,7 +19,11 @@ export const ease = { out: 'power3.out', long: 'expo.out', inOut: 'power2.inOut'
 export const duration = { quick: 0.4, base: 0.8, slow: 1.4 };
 
 // The one scroll: seconds the content takes to catch up with the scrollbar (pointer, touch).
-export const scroll = { smooth: 1, touch: 0.1 };
+// smooth 1.2, chosen by measurement (wheel, a steady scroll across the section 2 pin): the pinned section
+// accelerates least at 1.2 (about 26k px/s^2, against 33k at 1 and 38k at 0.8), at the cost of about 15 px
+// more lag and 0.15 s more settle, which still feels direct. touch 0.1 is kept: a touch scroll is not
+// measured here, so there is no evidence yet for another value.
+export const scroll = { smooth: 1.2, touch: 0.1 };
 
 gsap.defaults({ ease: ease.out, duration: duration.base });
 

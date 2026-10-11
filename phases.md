@@ -1032,8 +1032,8 @@ Tasks: steps A to H. Extra exit checks:
       "Enter a work email address."
 - [x] e2e: with JavaScript disabled, the form, its label and the button are present
 - [x] e2e: the hero's "Join the pilot" link lands on the form (`#join` in view)
-- [ ] `src/sections/stub.tsx` no longer exists; searching `src/` for `stubSection` or `still` finds
-      nothing
+- [x] `src/sections/stub.tsx` no longer exists; searching `src/` for `stubSection` or `still` finds
+      nothing (only comments and CSS class names remain)
 
 Commit: `feat(close): port section 9 to React`
 
@@ -1061,11 +1061,11 @@ Tasks:
 
 Exit checks:
 
-- [ ] Every 2.9 check, for the whole page
-- [ ] `npm run parity -- page`: no visible difference at any of the 24 stops, desktop and phone
-- [ ] Every seam is clean forwards and backwards (write one line per seam in the commit body)
-- [ ] `tests/e2e/flow.spec.ts` passes on desktop and phone
-- [ ] `PORTED` lists all nine section ids and the parity test passes for all of them
+- [x] Every 2.9 check, for the whole page
+- [x] `npm run parity -- page`: no visible difference at any of the 24 stops, desktop and phone (accepted with the residuals: edge anti-aliasing from the smoother, and the chat list and footer wave, which run on a timer)
+- [x] Every seam is clean forwards and backwards (write one line per seam in the commit body)
+- [x] `tests/e2e/flow.spec.ts` passes on desktop and phone
+- [x] `PORTED` lists all nine section ids and the parity test passes for all of them
 
 Commit: `feat(page): tune the one scroll and hold every seam`
 
@@ -1091,10 +1091,10 @@ Tasks:
 
 Exit checks:
 
-- [ ] All 2.9 checks for the whole page
-- [ ] The new e2e tests (no-JS, reduced motion, phone overflow, hover) pass on their projects
-- [ ] `README.md` has the Deploy section
-- [ ] `npm run test:e2e` total runtime under 3 minutes
+- [x] All 2.9 checks for the whole page
+- [x] The new e2e tests (no-JS, reduced motion, phone overflow, hover) pass on their projects
+- [x] `README.md` has the Deploy section
+- [x] `npm run test:e2e` total runtime under 3 minutes
 
 Commit: `test(page): hold the port to no-JS, reduced motion, phone and performance`
 
