@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { render } from '../../src/entry-server';
 import { sectionOf, textOf } from './html';
 
-// The port of ../landing/scripts/check-data.mjs: section 8 reads with no motion, sits between the panel and the close,
-// and claims no more than the product specification does. Page order is page.test.ts's job, so it is not repeated here.
 const data = sectionOf(render(), '08-your-data');
 const text = textOf(data);
 

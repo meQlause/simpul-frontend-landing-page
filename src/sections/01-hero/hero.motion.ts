@@ -21,17 +21,14 @@ import {
   WANDER,
 } from './hero.tuning';
 
-// The state the opening, the scroll and the refresh share. Plain values: the timelines are kept here
-// so any of the three can pause, restart or finish the others.
 interface Clock {
-  travel: gsap.core.Timeline | null; // the lights loop
-  restless: gsap.core.Tween | null; // the busy letters' loop
-  asleep: boolean; // the loops are paused: the hero has left the screen
-  opened: boolean; // the opening has finished and the page is revealed
-  skip: boolean; // the opening is finished at once, not played
+  travel: gsap.core.Timeline | null;
+  restless: gsap.core.Tween | null;
+  asleep: boolean;
+  opened: boolean;
+  skip: boolean;
 }
 
-// Everything the hero's motion holds between calls, in one place.
 interface Scene extends LineNodes {
   root: HTMLElement;
   shared: Shared;
@@ -54,8 +51,8 @@ interface Scene extends LineNodes {
 }
 
 interface Headings {
-  scatter: SplitText; // the busy line, word by word and letter by letter
-  split: SplitText; // the clear line, line by line behind a mask
+  scatter: SplitText;
+  split: SplitText;
 }
 
 interface Lean {
@@ -64,7 +61,6 @@ interface Lean {
   scale: number;
 }
 
-// The same disorder every time: the letters' offsets come from their index alone.
 function lean(index: number): Lean {
   return {
     y: ((index * LEAN.y.step) % LEAN.y.modulo) - LEAN.y.offset,
@@ -73,30 +69,34 @@ function lean(index: number): Lean {
   };
 }
 
-// The page's hero is shown: the boot class hides it until now (index.html).
 function revealPage(): void {
   document.documentElement.classList.remove('hero-boot');
 }
 
 function addPath(lines: SVGSVGElement, className?: string): SVGPathElement {
   const path = lines.appendChild(document.createElementNS(SVG_NS, 'path'));
+
   if (className) {
     path.setAttribute('class', className);
   }
+
   return path;
 }
 
 function addDot(lines: SVGSVGElement): SVGCircleElement {
   const dot = lines.appendChild(document.createElementNS(SVG_NS, 'circle'));
+
   dot.setAttribute('r', '3.5');
+
   return dot;
 }
 
-// Moves a link into its own group, so its transform never fights the scroll's.
 function wrapSVG(node: SVGElement): SVGGElement {
   const wrapper = document.createElementNS(SVG_NS, 'g');
+
   node.before(wrapper);
   wrapper.append(node);
+
   return wrapper;
 }
 
@@ -109,7 +109,9 @@ function buildScene(root: HTMLElement, shared: Shared): Scene {
   const straight = Array.from({ length: THREADS.out }, () => addPath(lines, 'out'));
   const links = all<SVGPathElement>(root, '[data-mark-link]');
   const backdrop = one<SVGCircleElement>(root, '[data-mark-backdrop]');
+
   links.forEach((link) => link.setAttribute('vector-effect', 'non-scaling-stroke'));
+
   return {
     root,
     shared,
@@ -147,9 +149,9 @@ function buildScene(root: HTMLElement, shared: Shared): Scene {
   };
 }
 
-// The busy letters never quite hold still: each drifts on a loop, paused until the opening is over.
 function restlessLetters(scene: Scene, chars: Element[]): void {
   const { gsap } = scene.shared;
+
   scene.clock.restless?.kill();
   const restless = gsap.to(chars, {
     x: () => gsap.utils.random(-WANDER.x, WANDER.x),
@@ -163,11 +165,15 @@ function restlessLetters(scene: Scene, chars: Element[]): void {
     stagger: { each: 0.03, from: 'random' },
     paused: true,
   });
+
   scene.clock.restless = restless;
+
   if (!scene.clock.opened) {
     return;
   }
+
   chars.forEach((char, index) => gsap.set(char, lean(index)));
+
   if (!scene.clock.asleep) {
     restless.play();
   }
@@ -180,28 +186,29 @@ function splitHeadings(scene: Scene): Headings {
     onSplit: (self) => restlessLetters(scene, self.chars),
   });
   const split = SplitText.create(scene.clear, { type: 'lines', mask: 'lines', autoSplit: true });
+
   return { scatter, split };
 }
 
-// Where the chat cards' centres must move to, to sit on the knot.
 const xToKnot = (node: Element, symbol: HTMLElement): number => {
   const card = node.getBoundingClientRect();
   const target = symbol.getBoundingClientRect();
+
   return target.left + target.width / 2 - card.left - card.width / 2;
 };
 
 const yToKnot = (node: Element, symbol: HTMLElement): number => {
   const card = node.getBoundingClientRect();
   const target = symbol.getBoundingClientRect();
+
   return target.top + target.height / 2 - card.top - card.height / 2;
 };
 
-// The opening, in order: the chat cards fly into the knot, the knot locks, the threads run out of it,
-// the busy words arrive, the clear words rise, then the eyebrow, the actions and the foot.
 function buildOpening(scene: Scene, headings: Headings, intro: gsap.core.Timeline): void {
   const { gsap, conditions } = scene.shared;
   const chars = headings.scatter.chars;
   const threads = [...scene.tangled, ...scene.straight];
+
   intro
     .from(
       scene.chats,
@@ -295,27 +302,29 @@ function buildOpening(scene: Scene, headings: Headings, intro: gsap.core.Timelin
     .fromTo(scene.footer, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8 }, OPENING.foot);
 }
 
-// The end of the opening: the final states are set, the page is revealed, and the loops start.
 function openHero(scene: Scene, headings: Headings): void {
   const { clock } = scene;
+
   if (clock.opened) {
     return;
   }
+
   clock.opened = true;
   scene.root.dataset.entered = 'true';
   settleFinal(scene, headings);
   revealPage();
   flow(scene);
   clock.restless?.play();
+
   if (clock.asleep) {
     clock.travel?.pause(0);
     clock.restless?.pause();
   }
 }
 
-// The final state of every piece of the opening, so nothing depends on how far it got.
 function settleFinal(scene: Scene, headings: Headings): void {
   const { gsap } = scene.shared;
+
   gsap.set(
     [scene.kicker, scene.busy, scene.clear, scene.below, scene.footer, ...scene.below.children],
     { autoAlpha: 1, y: 0 },
@@ -326,54 +335,59 @@ function settleFinal(scene: Scene, headings: Headings): void {
   gsap.set(headings.split.lines, { yPercent: 0, autoAlpha: 1 });
   gsap.set([...scene.tangled, ...scene.straight], {
     clearProps: 'strokeDasharray,strokeDashoffset',
-  }); // a resize redraws them whole
+  });
 }
 
-// The lights run on their own loop, rebuilt each time the layout or the opening changes.
 function flow(scene: Scene): void {
   const { gsap, conditions } = scene.shared;
+
   scene.clock.travel?.kill();
   const period = conditions.phone ? FLOW.phonePeriod : FLOW.desktopPeriod;
+
   scene.clock.travel = runLights(gsap, scene, period);
 }
 
-// Pauses the loops while the hero is off screen, and starts them again when it comes back.
 function sleep(scene: Scene, asleep: boolean): void {
   const { clock } = scene;
+
   if (asleep === clock.asleep) {
     return;
   }
+
   clock.asleep = asleep;
+
   if (asleep) {
     clock.travel?.pause(0);
     clock.restless?.pause();
+
     return;
   }
+
   if (clock.opened) {
     clock.travel?.restart();
     clock.restless?.resume();
   }
 }
 
-// The threads say what the heading says, and the release follows the mark. Runs at start and on every
-// refresh, so the lines follow the layout.
 function remeasure(scene: Scene): void {
   placeLines(scene, scene.shared.conditions.phone);
   placeRelease(scene.root, scene.lockup, scene.release, scene.releasePath);
+
   if (scene.clock.travel) {
     flow(scene);
   }
+
   if (scene.clock.asleep) {
     scene.clock.travel?.pause(0);
   }
 }
 
-// The starting state: the mark is an outline, and the carried order waits at the end of the thread.
 function setStart(scene: Scene): void {
   const { gsap, carried } = scene.shared;
+
   carried.setForm('order');
   scene.opening.append(carried.el);
-  carried.el.dataset.handoffObject = ''; // the page hides it once the next section takes it
+  carried.el.dataset.handoffObject = '';
   gsap.set([scene.releasePath, carried.el], { autoAlpha: 0 });
   gsap.set(scene.lockup, { visibility: 'visible' });
   gsap.set(scene.links, {
@@ -393,9 +407,9 @@ function setStart(scene: Scene): void {
   gsap.set([...scene.arriving, ...scene.leaving], { autoAlpha: 0 });
 }
 
-// The opening's paused timeline. Its children are added once the fonts are in.
 function prepareOpening(scene: Scene, headings: Headings): gsap.core.Timeline {
   setStart(scene);
+
   return scene.shared.gsap.timeline({
     paused: true,
     defaults: { ease: scene.shared.ease.out },
@@ -403,12 +417,13 @@ function prepareOpening(scene: Scene, headings: Headings): gsap.core.Timeline {
   });
 }
 
-// Once the fonts are in, the opening is built on the text it will keep, then played, or finished.
 function playOpening(scene: Scene, headings: Headings, intro: gsap.core.Timeline): void {
   if (scene.clock.opened) {
     return;
   }
+
   buildOpening(scene, headings, intro);
+
   if (scene.clock.skip) {
     intro.progress(1);
   } else {
@@ -416,24 +431,23 @@ function playOpening(scene: Scene, headings: Headings, intro: gsap.core.Timeline
   }
 }
 
-// Reduced motion: the finished page, with nothing moving.
 function stillHero(root: HTMLElement): void {
   root.dataset.entered = 'true';
   revealPage();
 }
 
-// The layout changes on resize: the threads and the release are placed again.
 function listenForRefresh(scene: Scene): () => void {
   const refresh = () => remeasure(scene);
+
   scene.shared.ScrollTrigger.addEventListener('refreshInit', refresh);
+
   return () => scene.shared.ScrollTrigger.removeEventListener('refreshInit', refresh);
 }
 
-// As the visitor scrolls, the finished logo becomes its outline again, the knot loosens, and one end of
-// the thread runs off the stage into section 2, carrying the order.
 function scrollOut(scene: Scene, intro: gsap.core.Timeline): void {
   const { gsap, carried } = scene.shared;
   const { links, releaseLinks, releaseBackdrop, wordmarkExit, releasePath } = scene;
+
   gsap
     .timeline({
       defaults: { ease: 'none' },
@@ -445,11 +459,13 @@ function scrollOut(scene: Scene, intro: gsap.core.Timeline): void {
         invalidateOnRefresh: true,
         onUpdate: (self) => {
           if (self.progress > SKIP_AFTER && !scene.clock.opened) {
-            scene.clock.skip = true; // the opening is not built yet, or is still playing: finish it
+            scene.clock.skip = true;
+
             if (intro.duration()) {
               intro.progress(1);
             }
           }
+
           sleep(scene, self.progress > ASLEEP_AFTER);
         },
       },
@@ -477,13 +493,14 @@ function scrollOut(scene: Scene, intro: gsap.core.Timeline): void {
     .to(scene.lines, { autoAlpha: 0, duration: 0.5 }, 0);
 }
 
-// The mark leans toward the pointer, on a fine pointer only. Returns the controller that ends it.
 function followPointer(scene: Scene): AbortController {
   const controller = new AbortController();
   const { conditions } = scene.shared;
+
   if (!conditions.phone && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     attachTilt(scene, controller.signal);
   }
+
   return controller;
 }
 
@@ -491,10 +508,12 @@ function attachTilt(scene: Scene, signal: AbortSignal): void {
   const { gsap, ease } = scene.shared;
   const rotateX = gsap.quickTo(scene.tilt, 'rotationX', { duration: 0.7, ease: ease.out });
   const rotateY = gsap.quickTo(scene.tilt, 'rotationY', { duration: 0.7, ease: ease.out });
+
   scene.root.addEventListener(
     'pointermove',
     (event) => {
       const rect = scene.root.getBoundingClientRect();
+
       rotateX((HALF - (event.clientY - rect.top) / rect.height) * TILT.degrees);
       rotateY(((event.clientX - rect.left) / rect.width - HALF) * TILT.degrees);
     },
@@ -512,20 +531,26 @@ function attachTilt(scene: Scene, signal: AbortSignal): void {
 
 export const initHero: SectionMotion['init'] = (root, shared) => {
   shared.gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin, SplitText);
-  one(root, '.hero-symbol').innerHTML = mark; // the traced logo replaces the PNG the markup shows without JavaScript
+  one(root, '.hero-symbol').innerHTML = mark;
+
   if (shared.conditions.reduce) {
     stillHero(root);
+
     return undefined;
   }
+
   root.dataset.motion = '';
   const scene = buildScene(root, shared);
   const headings = splitHeadings(scene);
   const intro = prepareOpening(scene, headings);
+
   remeasure(scene);
   const unlisten = listenForRefresh(scene);
+
   void document.fonts.ready.then(() => playOpening(scene, headings, intro));
   scrollOut(scene, intro);
   const controller = followPointer(scene);
+
   return () => {
     controller.abort();
     unlisten();

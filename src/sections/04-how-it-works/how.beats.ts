@@ -17,11 +17,6 @@ import {
   WORD_TILT,
 } from './how.tuning';
 
-// The five stations of the desktop journey, each a block of the one master timeline. Each beat says what
-// kind of thing it is: "Understand" is soft, "Decide" is human, "Route" is mechanical, "Hold" counts,
-// "Arrive" buzzes.
-
-// The match: the rule that fits the message lights, and only then.
 export const MATCH_STYLE = {
   backgroundColor: COLOUR.matchFill,
   color: COLOUR.ink,
@@ -30,9 +25,9 @@ export const MATCH_STYLE = {
   duration: 0.2,
 };
 
-// The words of the message scatter, each on its own jitter, and settle back.
 function wordScatter() {
   const jitter = (index: number) => WORD_JITTER[index % WORD_JITTER.length];
+
   return {
     x: (index: number) => jitter(index).x,
     y: (index: number) => jitter(index).y,
@@ -43,7 +38,6 @@ function wordScatter() {
   };
 }
 
-// 1. Understand: soft and probabilistic. Words drift apart, then re-form, field by field.
 export function understandBeat(
   trip: Journey,
   page: Page,
@@ -51,6 +45,7 @@ export function understandBeat(
   words: Element[],
 ): void {
   const glow = one(page.root, '.how-field-glow');
+
   timeline
     .addLabel('message', 0)
     .to([page.steps.decide, page.steps.route], { color: PALE, duration: 0.3 }, BEAT.understandOn);
@@ -79,7 +74,6 @@ export function understandBeat(
   timeline.addLabel('understand', BEAT.understandLabel);
 }
 
-// Each rule is checked in turn: it lights, then the ones that did not match settle back to grey.
 function checkRules(page: Page, timeline: gsap.core.Timeline): void {
   all<HTMLElement>(page.root, '.how-rules li').forEach((rule, index) => {
     timeline.to(
@@ -87,6 +81,7 @@ function checkRules(page: Page, timeline: gsap.core.Timeline): void {
       { borderColor: COLOUR.ruleLit, duration: 0.1 },
       BEAT.rules + index * RULE_STEP,
     );
+
     if (rule !== page.match) {
       timeline.to(
         rule,
@@ -97,10 +92,10 @@ function checkRules(page: Page, timeline: gsap.core.Timeline): void {
   });
 }
 
-// 2. Decide: human and deliberate. The AI's light stays behind the gate; the rules are checked.
 export function decideBeat(trip: Journey, page: Page, timeline: gsap.core.Timeline): void {
   const gate = one(page.root, '.how-gate svg');
   const hand = one(page.root, '.how-hand');
+
   off(timeline, page.steps.understand, BEAT.decideOn);
   head(
     timeline.to(page.steps.decide, { color: COLOUR.ink, '--on': 1, duration: 0.3 }, BEAT.decideOn),
@@ -138,10 +133,10 @@ export function decideBeat(trip: Journey, page: Page, timeline: gsap.core.Timeli
     .addLabel('decide', BEAT.decideLabel);
 }
 
-// 3. Route: mechanical and exact. A role, who holds it today, then the backup.
 export function routeBeat(trip: Journey, page: Page, timeline: gsap.core.Timeline): void {
   const back = one(page.root, '.how-role-back');
   const backup = one(page.root, '.how-backup');
+
   off(timeline, page.steps.decide, BEAT.routeOn);
   head(
     timeline.to(page.steps.route, { color: COLOUR.green, '--on': 1, duration: 0.3 }, BEAT.routeOn),
@@ -184,11 +179,11 @@ export function routeBeat(trip: Journey, page: Page, timeline: gsap.core.Timelin
     .addLabel('route', BEAT.routeLabel);
 }
 
-// 4. Hold: sixty seconds, in case someone corrects it.
 export function holdBeat(trip: Journey, page: Page, timeline: gsap.core.Timeline): void {
   const note = page.split(one(page.root, '.how-hold-note'), { type: 'words', mask: 'words' }).words;
   const count = one(trip.traveller, '.how-hold-count');
   const held = { s: 0 };
+
   timeline
     .from(note, { yPercent: 110, stagger: 0.03, duration: 0.3 }, BEAT.holdNote)
     .to(trip.ring, { autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)' }, BEAT.ringIn)
@@ -212,9 +207,9 @@ export function holdBeat(trip: Journey, page: Page, timeline: gsap.core.Timeline
     .addLabel('hold', BEAT.holdLabel);
 }
 
-// 5. Arrive: the label becomes the notification; one tap and the whole thread turns green.
 export function arriveBeat(trip: Journey, page: Page, timeline: gsap.core.Timeline): void {
   const { primary, tap, notice, steps } = page;
+
   timeline
     .to(trip.ring, { autoAlpha: 0, scale: 0.6, duration: 0.2 }, BEAT.arrivedOut)
     .to(trip.traveller, { scale: 0.86, duration: 0.5 }, BEAT.shrink)

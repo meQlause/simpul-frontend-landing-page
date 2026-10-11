@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { render } from '../../src/entry-server';
 import { sectionOf, textOf } from './html';
 
-// The port of ../landing/scripts/check-how.mjs: what the still diagram says, with no motion.
 const html = render();
 const how = sectionOf(html, '04-how-it-works');
 
 describe('section 4, how it works', () => {
   it('says everything in the brief, with no motion', () => {
     const text = textOf(how);
+
     for (const copy of [
       'AI understands.',
       'You decide.',
@@ -44,6 +44,7 @@ describe('section 4, how it works', () => {
 
   it('keeps the arrival an illustration: nothing in it looks clickable to assistive tech', () => {
     const notice = how.match(/<article class="how-notice"[\s\S]*?<\/article>/)?.[0] ?? '';
+
     expect(notice).not.toMatch(/<button\b/);
   });
 

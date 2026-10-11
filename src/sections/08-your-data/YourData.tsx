@@ -1,9 +1,6 @@
 import './your-data.css';
 import { DataOurs, DataYours } from './YourData.parts';
 
-// Your data. Brief: ../../../sections/08-your-data.md. Not pinned. With motion, the thread comes down between
-// the headline and the lead and forks; the left line strings Simpul's three layers and the right one fills the
-// customer's five (your-data.motion.ts). Without motion the same words and the same drawings stand still.
 export function YourData() {
   return (
     <section

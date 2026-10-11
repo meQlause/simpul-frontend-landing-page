@@ -1,6 +1,3 @@
-// The hero's blocks, split out so each one stays inside the JSX depth limit. Each renders exactly the
-// markup it replaces in Hero.tsx: no wrapper of its own.
-
 export function HeroTitle() {
   return (
     <h1 className="headline hero-title" id="hero-title">

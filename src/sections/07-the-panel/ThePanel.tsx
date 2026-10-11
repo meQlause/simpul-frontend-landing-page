@@ -3,9 +3,6 @@ import attention from './screens/attention.webp';
 import home from './screens/home.webp';
 import rule from './screens/rule-2.webp';
 
-// The panel. Brief: ../../../sections/07-the-panel.md. With motion, one window of the real panel is built
-// on the stage and scrubbed through the three screens (the-panel.motion.ts). The three captures below are
-// the still version, and the ones phones see.
 export function ThePanel() {
   return (
     <section className="section panel" data-section="07-the-panel" aria-labelledby="panel-title">

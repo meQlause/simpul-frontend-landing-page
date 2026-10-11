@@ -4,13 +4,13 @@ import { render } from '../../src/entry-server';
 import { initTurn } from '../../src/sections/03-turn/turn.motion';
 import { sectionOf, textOf } from './html';
 
-// The port of ../landing/scripts/check-turn.mjs: what the still turn says, and that it never pins.
 const html = render();
 const turn = sectionOf(html, '03-turn');
 
 describe('section 3, the turn', () => {
   it('says everything with no motion, and no leftover copy from earlier drafts', () => {
     const text = textOf(turn).toLowerCase();
+
     for (const copy of [
       'the idea',
       'not another tool.',
@@ -21,6 +21,7 @@ describe('section 3, the turn', () => {
     ]) {
       expect(text, copy).toContain(copy);
     }
+
     expect(text).not.toMatch(/whatsapp next|uninterrupted|keeps chatting where they chat/);
   });
 
@@ -34,6 +35,7 @@ describe('section 3, the turn', () => {
     const tags = turn.split('<');
     const messages = tags.filter((tag) => tag.includes('data-turn-message'));
     const signals = messages.filter((tag) => tag.includes('data-turn-signal'));
+
     expect(messages.length).toBeGreaterThanOrEqual(6);
     expect(signals).toHaveLength(2);
     expect(signals.length).toBeLessThan(messages.length / 2);
@@ -50,6 +52,7 @@ describe('section 3, the turn', () => {
       new URL('../../src/sections/03-turn/turn.motion.ts', import.meta.url),
       'utf8',
     );
+
     expect(source).not.toMatch(/\bpin\s*:/);
   });
 
@@ -59,6 +62,7 @@ describe('section 3, the turn', () => {
       { get: () => expect.fail('reduced motion must leave the still chat unchanged') },
     );
     const shared = { conditions: { reduce: true } };
+
     expect(initTurn(untouched as unknown as HTMLElement, shared as never)).toBeUndefined();
   });
 });

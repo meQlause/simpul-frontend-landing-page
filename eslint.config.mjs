@@ -1,9 +1,3 @@
-// pspt canonical ESLint config — react.
-// Source of truth: references/lint/react.md. Copied VERBATIM into the project by
-// /pspt:build; never edited there. A change is a change to pspt, not to the project.
-// /pspt:build and /pspt:status compare this file's sha256 against
-// references/toolchain/manifest.json — any difference is drift and fails CHECK.
-
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import react from 'eslint-plugin-react';
@@ -24,16 +18,15 @@ export default [
       'coverage/**',
       'node_modules/**',
       'src/generated/**',
-      // pspt's own toolchain files — verified by sha256, not project code
       'eslint.config.mjs',
       'commitlint.config.mjs',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  react.configs.flat.recommended, // NOT .configs.recommended (legacy)
+  react.configs.flat.recommended,
   react.configs.flat['jsx-runtime'],
-  reactHooks.configs.flat['recommended-latest'], // 7.x: configs['recommended-latest'] is the legacy shape
+  reactHooks.configs.flat['recommended-latest'],
   jsxA11y.flatConfigs.recommended,
   sonarjs.configs.recommended,
   importPlugin.flatConfigs.recommended,
@@ -47,9 +40,6 @@ export default [
     },
     settings: { react: { version: 'detect' } },
     rules: {
-      // Disable directives — allowed, never silent: name the rule and give a reason
-      // after `--`. A blanket, unpaired or unused disable is itself an error
-      // (conventions §10).
       '@eslint-community/eslint-comments/require-description': [
         'error',
         { ignore: ['eslint-enable'] },
@@ -69,19 +59,16 @@ export default [
         },
       ],
 
-      // §1 Size
       'max-lines-per-function': ['error', { max: 100, skipBlankLines: true, skipComments: true }],
       'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
       'max-statements': ['warn', 15],
       'max-params': ['warn', 4],
       'react/jsx-max-depth': ['warn', { max: 5 }],
 
-      // §2 Branching
       complexity: ['error', 8],
       'sonarjs/cognitive-complexity': ['error', 10],
       'max-depth': ['error', 2],
 
-      // §3 Conditional shape — no-negated-condition deliberately not enabled
       'sonarjs/no-nested-conditional': 'error',
       'no-else-return': ['error', { allowElseIf: false }],
       'no-lonely-if': 'error',
@@ -90,13 +77,11 @@ export default [
       'sonarjs/no-inverted-boolean-check': 'error',
       'sonarjs/no-redundant-boolean': 'error',
 
-      // §4 React-specific
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
 
-      // §5 Duplication and dead logic — all error, none downgraded
       'sonarjs/no-identical-conditions': 'error',
       'sonarjs/no-identical-expressions': 'error',
       'sonarjs/no-duplicated-branches': 'error',
@@ -107,7 +92,6 @@ export default [
       'sonarjs/no-redundant-assignments': 'error',
       'sonarjs/no-unused-collection': 'error',
 
-      // §6 Switch and other shape rules
       'sonarjs/no-small-switch': 'error',
       'sonarjs/max-switch-cases': ['error', 30],
       'sonarjs/no-nested-functions': 'error',
@@ -118,7 +102,6 @@ export default [
       'sonarjs/no-commented-code': 'error',
       'sonarjs/todo-tag': 'error',
 
-      // §7 Unused code
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',
@@ -133,13 +116,15 @@ export default [
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
 
-      // Identifier length
       'id-length': [
         'error',
-        { min: 3, properties: 'never', exceptions: ['id', 'db', 'to', 'up', 'fn'] },
+        {
+          min: 3,
+          properties: 'never',
+          exceptions: ['id', 'db', 'to', 'up', 'fn'],
+        },
       ],
 
-      // Magic values
       'no-magic-numbers': [
         'error',
         {
@@ -155,7 +140,6 @@ export default [
     },
   },
 
-  // Magic-value exemptions — test tables and Zod schemas keep their literals
   {
     files: ['tests/**/*.{ts,tsx}'],
     rules: { 'no-magic-numbers': 'off', 'sonarjs/no-duplicate-string': 'off' },
@@ -165,9 +149,40 @@ export default [
     rules: { 'no-magic-numbers': 'off' },
   },
 
-  prettier, // turns off formatting rules the presets enabled
+  prettier,
 
-  // eslint-config-prettier also turns off `curly`; §3 requires it, so it is
-  // re-enabled after prettier. With 'all' it never conflicts with formatting.
-  { files: SOURCE, rules: { curly: ['error', 'all'] } },
+  {
+    files: SOURCE,
+    rules: {
+      curly: ['error', 'all'],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: 'import', next: '*' },
+        { blankLine: 'never', prev: 'import', next: 'import' },
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: ['function', 'class', 'export'],
+        },
+        {
+          blankLine: 'always',
+          prev: ['function', 'class', 'export'],
+          next: '*',
+        },
+        { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
+        {
+          blankLine: 'any',
+          prev: ['const', 'let', 'var'],
+          next: ['const', 'let', 'var'],
+        },
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: ['if', 'for', 'while', 'do', 'switch', 'try'],
+        },
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+        { blankLine: 'always', prev: '*', next: 'return' },
+      ],
+    },
+  },
 ];

@@ -3,8 +3,6 @@ import { createCarried } from '../../motion/carried';
 import { all, one } from '../../motion/dom';
 import type { Shared } from '../../motion/types';
 
-// The state the turn's thread, chat and scroll share. Built once; every function takes it.
-
 interface Spot {
   x: number;
   y: number;
@@ -14,23 +12,21 @@ interface Start extends Spot {
   angle: number;
 }
 
-// The route the order takes, in the section's own coordinates.
 export interface Route {
   width: number;
   height: number;
-  solo: boolean; // no section above: the order starts at the thread's own in-anchor
-  start: Start; // where the order is when this section takes it
-  out: Spot; // the out-anchor, where the thread leaves
-  lane: number; // the empty corridor the thread runs down
-  dock: Spot; // the place the order sits on the layer
+  solo: boolean;
+  start: Start;
+  out: Spot;
+  lane: number;
+  dock: Spot;
 }
 
-// One chat message, with the measures the loop needs.
 export interface Item {
   el: HTMLElement;
-  meaning: HTMLElement | null; // the words the layer reads, on a message that matters
+  meaning: HTMLElement | null;
   text: string;
-  signal: boolean; // a message that needs someone to act
+  signal: boolean;
   read: boolean;
   centre: number;
   top: number;
@@ -39,9 +35,9 @@ export interface Item {
 }
 
 export interface ChatGeo {
-  cycle: number; // the distance between the loop's two copies
-  lineY: number; // the reading line, in the feed
-  phase: number; // where the loop starts
+  cycle: number;
+  lineY: number;
+  phase: number;
 }
 
 type RawPath = ReturnType<typeof MotionPathPlugin.getRawPath>;
@@ -81,15 +77,19 @@ export interface Scene {
 
 function buildOrder(): { order: HTMLElement; outline: HTMLElement } {
   const order = createCarried().el;
+
   order.classList.add('turn-order');
   order.dataset.handoffObject = '';
   const outline = order.appendChild(document.createElement('span'));
+
   outline.className = 'turn-order-outline';
+
   return { order, outline };
 }
 
 function itemOf(node: HTMLElement): Item {
   const meaning = node.querySelector<HTMLElement>('.turn-meaning span');
+
   return {
     el: node,
     meaning,
@@ -103,19 +103,22 @@ function itemOf(node: HTMLElement): Item {
   };
 }
 
-// The chat loops seamlessly: a second copy follows the first, so the list is always full.
 function cloneChat(list: HTMLElement): { originals: HTMLElement[]; clones: HTMLElement[] } {
   const originals = all(list, 'li');
+
   originals.forEach((item) => item.classList.remove('is-read'));
   const clones = originals.map((item) => list.appendChild(item.cloneNode(true) as HTMLElement));
+
   return { originals, clones };
 }
 
 export function buildTurn(root: HTMLElement, shared: Shared): Scene {
   const { order, outline } = buildOrder();
+
   root.append(order);
   const list = one(root, '.turn-messages');
   const { originals, clones } = cloneChat(list);
+
   return {
     root,
     shared,
@@ -137,7 +140,7 @@ export function buildTurn(root: HTMLElement, shared: Shared): Scene {
     originals,
     clones,
     items: [...originals, ...clones].map(itemOf),
-    clock: { t: 0, exit: 0 }, // arrive (thread and carry) and hand-on progress
+    clock: { t: 0, exit: 0 },
     chat: { time: 0, scroll: 0 },
     layerP: 0,
     receiving: null,

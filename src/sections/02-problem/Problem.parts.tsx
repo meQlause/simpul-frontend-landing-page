@@ -1,7 +1,3 @@
-// The problem's blocks, split out so each one stays inside the JSX depth limit. Each renders exactly the
-// markup it replaces in Problem.tsx: no wrapper of its own.
-
-// The chain: one order, passed person to person. Pinned; the link snaps at the third hand-over.
 export function ProblemChain() {
   return (
     <ol className="chain" data-chain="">
@@ -71,7 +67,6 @@ export function ProblemChain() {
   );
 }
 
-// The floor: where the order falls and the questions pile up. The failures are the list with no motion.
 export function ProblemFloor() {
   return (
     <div className="problem-floor">

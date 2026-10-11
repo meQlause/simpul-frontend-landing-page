@@ -24,11 +24,6 @@ import {
   WAITS,
 } from './quiet-by-design.tuning';
 
-// The board, frame by frame: where every card is at the scroll clock's place, and what the furniture
-// (the hold, the counter, the night, the queue, the question, the survivor) shows. Every frame is a pure
-// function of the clock, the plan and the layout, so scrolling back plays the same frames in reverse.
-
-// Where the section is, in pixels and in physics seconds, and how far each commitment has got (0 to 1).
 interface Tick {
   y: number;
   s: number;
@@ -37,7 +32,6 @@ interface Tick {
   dark: number;
 }
 
-// One card's frame. Anything not set by a commitment keeps the resting value.
 interface Part {
   x: number;
   y: number;
@@ -50,7 +44,6 @@ interface Part {
   lead: boolean;
 }
 
-// What one commitment's frame reads: the layout, the card's share of its window, its role and its start.
 interface Ctx {
   layout: Layout;
   curves: Curves;
@@ -74,6 +67,7 @@ function tickOf(scene: Scene): Tick {
   const dark =
     segment(shares[RULE.sleeps], DARK.in.from, DARK.in.to) -
     segment(shares[RULE.sleeps], DARK.out.from, DARK.out.to);
+
   return {
     y: position,
     s: along(layout.knots, position),
@@ -83,7 +77,6 @@ function tickOf(scene: Scene): Tick {
   };
 }
 
-// A card's frame before its commitment, and the card's default look during and after it.
 function restingPart(posX: number, posY: number, angle: number, dim: number): Part {
   return {
     x: posX,
@@ -98,7 +91,6 @@ function restingPart(posX: number, posY: number, angle: number, dim: number): Pa
   };
 }
 
-// It waits: lifted to be sent, held, corrected, pulled back, cancelled.
 function waitsPart({ layout, share, role, start, curves }: Ctx): Partial<Part> {
   const [startX, startY, startR] = start;
   const lift = curves.inOut(ramp(share, WAITS.lift, role.slot * WAITS.liftStep));
@@ -111,6 +103,7 @@ function waitsPart({ layout, share, role, start, curves }: Ctx): Partial<Part> {
         ]
       : [startX, startY - WAITS.beside];
   const travel = lift * (1 - WAITS.pullBack * back);
+
   return {
     x: startX + (anchorX - startX) * travel,
     y: startY + (anchorY - startY) * travel,
@@ -122,11 +115,12 @@ function waitsPart({ layout, share, role, start, curves }: Ctx): Partial<Part> {
   };
 }
 
-// It has a limit: six go through, one after another, and the counter stops at six; the rest fold.
 function limitPart({ layout, share, role, start, curves }: Ctx): Partial<Part> {
   const [startX, startY, startR] = start;
+
   if (role.slot < LIMIT) {
     const exit = ramp(share, LIMIT_MOVE.go, role.slot * LIMIT_MOVE.step);
+
     return {
       x: startX + (layout.cx - startX) * LIMIT_MOVE.drift * exit,
       y: startY + (-layout.ch - startY) * curves.takeoff(exit),
@@ -136,10 +130,12 @@ function limitPart({ layout, share, role, start, curves }: Ctx): Partial<Part> {
       z: LAYER.lifted,
     };
   }
+
   const extra = role.slot - LIMIT;
   const gather = curves.inOut(
     segment(share, LIMIT_MOVE.gather.from + extra * LIMIT_MOVE.gatherStep, LIMIT_MOVE.gather.to),
   );
+
   return {
     x: startX + (layout.fold[0] + extra * LIMIT_MOVE.fold - startX) * gather,
     y: startY + (layout.fold[1] + extra * LIMIT_MOVE.fold - startY) * gather,
@@ -150,12 +146,12 @@ function limitPart({ layout, share, role, start, curves }: Ctx): Partial<Part> {
   };
 }
 
-// It sleeps: night falls, the cards that can wait line up for the morning, and go at 07:00.
 function sleepsPart({ layout, share, role, start, curves, dim }: Ctx): Partial<Part> {
   const [startX, startY, startR] = start;
   const line = curves.inOut(ramp(share, SLEEP.line, role.slot * SLEEP.lineStep));
   const away = segment(share, SLEEP.away.from + role.slot * SLEEP.awayStep, SLEEP.away.to);
   const seat = layout.cx + (role.slot - (role.size - 1) / 2) * layout.cell;
+
   return {
     x: startX + (seat - startX) * line + SLEEP.drift * curves.takeoff(away),
     y: startY + (layout.Hp * SLEEP.height - startY) * line,
@@ -166,11 +162,11 @@ function sleepsPart({ layout, share, role, start, curves, dim }: Ctx): Partial<P
   };
 }
 
-// The hesitation: towards one person, a pause, back; towards the other, a pause, back.
 function lobe(curves: Curves, value: number): number {
   const near =
     curves.out(segment(value, ASK.near.from, ASK.near.to)) *
     (1 - curves.inOut(segment(value, ASK.nearOut.from, ASK.nearOut.to)));
+
   return near * (1 + ASK.wobble * Math.sin(value * ASK.wobbleFreq));
 }
 
@@ -178,11 +174,11 @@ function hesitate(curves: Curves, share: number): number {
   return lobe(curves, segment(share, ASK.split, 1)) - lobe(curves, segment(share, 0, ASK.split));
 }
 
-// It asks instead of guessing: unsure who it is for, it hesitates between two people, then becomes a question.
 function asksPart({ layout, share, start, curves }: Ctx): Partial<Part> {
   const [startX, startY, startR] = start;
   const rise = curves.inOut(segment(share, ASK.rise.from, ASK.rise.to));
   const between = hesitate(curves, segment(share, ASK.hesitate.from, ASK.hesitate.to));
+
   return {
     x: startX + (layout.ask[0] - startX) * rise + between * layout.reach,
     y: startY + (layout.ask[1] - startY) * rise,
@@ -193,7 +189,6 @@ function asksPart({ layout, share, start, curves }: Ctx): Partial<Part> {
   };
 }
 
-// It reads, it does not watch: what was said becomes summary lines, then goes.
 function readsPart({ share, role, start }: Ctx): Partial<Part> {
   const [startX, startY, startR] = start;
   const summed = segment(
@@ -206,28 +201,31 @@ function readsPart({ share, role, start }: Ctx): Partial<Part> {
     READS.gone.from + role.slot * READS.goneStep,
     READS.gone.to + role.slot * READS.goneStep,
   );
+
   return { x: startX, y: startY + READS.drop * gone, r: startR, alpha: 1 - gone, summed };
 }
 
-// The commitments' frames, by their order (RULE).
 const PARTS = [waitsPart, limitPart, sleepsPart, asksPart, readsPart];
 
-// A card's frame: where the physics has it before its commitment, then its commitment's own.
 function notePart(scene: Scene, tick: Tick, index: number): Part | null {
   const role = scene.roles[index];
   const { layout, curves } = scene;
+
   if (tick.y < layout.windows[role.step].a) {
     const found = scene.plan.track(index, tick.s);
+
     return found ? restingPart(found[0], found[1], found[2], tick.dim) : null;
   }
+
   const start = scene.starts[index];
   const ctx: Ctx = { layout, curves, share: tick.e[role.step], role, start, dim: tick.dim };
+
   return { ...restingPart(start[0], start[1], start[2], tick.dim), ...PARTS[role.step](ctx) };
 }
 
-// Pins a node where it belongs on the stage: its centre, turned and scaled.
 function put(node: HTMLElement, place: Place): void {
   const { x, y, r: angle = 0, scale = 1 } = place;
+
   node.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${angle}rad) scale(${scale})`;
 }
 
@@ -244,6 +242,7 @@ function write(node: HTMLElement, text: number | string): void {
 
 function paintSky(scene: Scene, tick: Tick): void {
   const { panel } = scene.board;
+
   panel.style.backgroundColor = scene.curves.sky(tick.dark);
   panel.style.setProperty('--line-color', scene.curves.glow(tick.dark));
 }
@@ -253,25 +252,32 @@ interface Notes {
   seen: number;
 }
 
-// Each card, placed; the count of cards still seen (the one that matters is always there).
 function renderNotes(scene: Scene, tick: Tick): Notes {
   const notes: Notes = { lead: null, seen: 1 };
+
   scene.board.notes.forEach((note, index) => {
     const part = notePart(scene, tick, index);
+
     if (!part) {
       show(note.el, 0);
+
       return;
     }
+
     show(note.el, part.alpha);
+
     if (part.alpha > FEEL.seen) {
       notes.seen += 1;
     }
+
     note.el.style.zIndex = String(part.z);
     put(note.el, part);
     note.tick.style.transform = `scale(${part.ticked})`;
+
     if (part.lead) {
       notes.lead = { x: part.x, y: part.y };
     }
+
     if (scene.roles[index].step === RULE.reads) {
       note.sum.style.opacity = String(part.summed);
       note.words.forEach((word) => {
@@ -279,10 +285,10 @@ function renderNotes(scene: Scene, tick: Tick): Notes {
       });
     }
   });
+
   return notes;
 }
 
-// The 60-second hold: it counts, and a correction stops it at 45 seconds.
 function renderHold(scene: Scene, tick: Tick, lead: Notes['lead']): void {
   const { board, layout, curves } = scene;
   const waits = tick.e[RULE.waits];
@@ -292,12 +298,16 @@ function renderHold(scene: Scene, tick: Tick, lead: Notes['lead']): void {
   const fixAlpha =
     segment(waits, WAITS.fixShow.from, WAITS.fixShow.to) *
     (1 - segment(waits, WAITS.fixHide.from, WAITS.fixHide.to));
+
   show(board.hold, lead ? holdAlpha : 0);
   show(board.fix, lead ? fixAlpha : 0);
+
   if (!lead) {
     return;
   }
+
   const sweep = WAITS.full * segment(waits, WAITS.ring.from, WAITS.ring.to);
+
   put(board.hold, {
     x: lead.x + layout.cw / 2 - SPOTS.hold.x,
     y: lead.y - layout.ch / 2 + SPOTS.hold.y,
@@ -314,9 +324,9 @@ function renderHold(scene: Scene, tick: Tick, lead: Notes['lead']): void {
   });
 }
 
-// The count on the board, and the board's restlessness with it: it ends at the one that matters.
 function renderTally(scene: Scene, seen: number): void {
   const { board, feel, shared } = scene;
+
   if (board.tallied.textContent !== String(seen)) {
     board.tallied.textContent = String(seen);
     board.tallyLabel.textContent = seen === 1 ? 'that matters' : 'notifications';
@@ -327,10 +337,10 @@ function renderTally(scene: Scene, seen: number): void {
     );
     board.panel.classList.toggle('is-calm', seen === 1);
   }
+
   feel.noise = clampTo(0, 1, (seen - 1) / FEEL.full);
 }
 
-// The limit: a counter that climbs to six and stops; one summary for the rest.
 function renderCounter(scene: Scene, tick: Tick): void {
   const { board, layout, curves } = scene;
   const limit = tick.e[RULE.limit];
@@ -338,6 +348,7 @@ function renderCounter(scene: Scene, tick: Tick): void {
     { length: LIMIT },
     (_unused, slot) => limit >= LIMIT_MOVE.sent.from + LIMIT_MOVE.sent.step * slot,
   ).filter(Boolean).length;
+
   show(
     board.counter,
     segment(limit, LIMIT_MOVE.count.from, LIMIT_MOVE.count.to) *
@@ -368,10 +379,10 @@ function renderCounter(scene: Scene, tick: Tick): void {
   });
 }
 
-// The night, and the line waiting for the morning.
 function renderNight(scene: Scene, tick: Tick): void {
   const { board, layout } = scene;
   const sleeps = tick.e[RULE.sleeps];
+
   show(
     board.night,
     segment(sleeps, SLEEP.night.from, SLEEP.night.to) *
@@ -381,12 +392,14 @@ function renderNight(scene: Scene, tick: Tick): void {
   write(board.hour, sleeps >= MORNING ? '07:00' : '21:00');
   board.night.classList.toggle('is-morning', sleeps >= MORNING);
   const queued = scene.take[RULE.sleeps];
-  const row = ((queued - 1) / 2) * layout.cell + layout.cw * SLEEP.tiles; // half the queue's width
+  const row = ((queued - 1) / 2) * layout.cell + layout.cw * SLEEP.tiles;
+
   show(
     board.queue,
     segment(sleeps, SLEEP.queue.from, SLEEP.queue.to) *
       (1 - segment(sleeps, SLEEP.queueOut.from, SLEEP.queueOut.to)),
   );
+
   if (queued > 2) {
     put(board.queue, {
       x: layout.cx - row + SLEEP.queueLong.x,
@@ -397,10 +410,10 @@ function renderNight(scene: Scene, tick: Tick): void {
   }
 }
 
-// The question, between two people.
 function renderQuestion(scene: Scene, tick: Tick): void {
   const { board, layout, curves } = scene;
   const asks = tick.e[RULE.asks];
+
   board.chips.forEach((chip, index) => {
     show(
       chip,
@@ -421,13 +434,13 @@ function renderQuestion(scene: Scene, tick: Tick): void {
   });
 }
 
-// Where the survivor is while it rides the thread away, from the thread's own path.
 function ridingAt(
   layout: Layout,
   curves: Curves,
   away: number,
 ): { x: number; y: number; scale: number } {
   const point = MotionPathPlugin.getPositionOnPath(layout.rideRaw, curves.inOut(away));
+
   return {
     x: point.x - layout.final.x,
     y: point.y - layout.final.y,
@@ -435,7 +448,6 @@ function ridingAt(
   };
 }
 
-// The one that mattered: buried at first, it rises clean, then rides the thread on to section 7.
 function renderSurvivor(scene: Scene, tick: Tick): void {
   const { board, layout, curves } = scene;
   const rise = curves.inOut(segment(tick.y, layout.rise[0], layout.rise[1]));
@@ -446,17 +458,19 @@ function renderSurvivor(scene: Scene, tick: Tick): void {
     scale: 1 + SURVIVOR.grow * rise,
   };
   const spot = away > 0 ? ridingAt(layout, curves, away) : sitting;
+
   put(board.survivor, { x: spot.x, y: spot.y, scale: spot.scale });
   board.survivor.style.opacity = String(rise > 0 ? 1 : tick.dim);
   board.survivor.style.zIndex = String(rise > 0 ? SURVIVOR_LAYER.up : SURVIVOR_LAYER.rest);
   board.survivor.classList.toggle('is-clean', rise > SURVIVOR_FADE);
 }
 
-// One frame of the section, at the scroll clock's place.
 export function renderFrame(scene: Scene): void {
   const tick = tickOf(scene);
+
   paintSky(scene, tick);
   const notes = renderNotes(scene, tick);
+
   renderHold(scene, tick, notes.lead);
   renderTally(scene, notes.seen);
   renderCounter(scene, tick);

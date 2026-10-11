@@ -16,10 +16,6 @@ import {
 } from './people.strands';
 import { AUTO, CHAPTER, ENTRY, HOVER, JOIN, PULL, SCROLL, SPRING } from './people.tuning';
 
-// For each person. Not pinned (section 4 is). The green thread splits into four strands, one per card. A
-// card's knot unties by itself in the middle of the screen, and also on hover, on keyboard focus, or when
-// it is pulled. Once all four are straight they rejoin below into one, slightly thicker thread.
-
 const clamp = (value: number): number => Math.min(1, Math.max(0, value));
 
 type Split = (target: Element, vars: Parameters<typeof SplitText.create>[1]) => SplitText;
@@ -37,7 +33,6 @@ interface Scene {
   joined: boolean;
 }
 
-// The text arrives as it comes into view; scrolling back takes it away again.
 function revealText(root: HTMLElement, shared: Shared, split: Split): void {
   const { gsap } = shared;
   const chapter = one(root, '.people-chapter');
@@ -47,6 +42,7 @@ function revealText(root: HTMLElement, shared: Shared, split: Split): void {
     start,
     toggleActions: 'play none none reverse',
   });
+
   gsap.from(split(one(root, '.people .eyebrow'), { type: 'chars' }).chars, {
     autoAlpha: 0,
     y: 6,
@@ -64,6 +60,7 @@ function revealText(root: HTMLElement, shared: Shared, split: Split): void {
     },
   );
   const title = split(one(root, '.people-title'), { type: 'words', mask: 'words' }).words;
+
   gsap.from(title, {
     yPercent: 115,
     rotation: 4,
@@ -74,6 +71,7 @@ function revealText(root: HTMLElement, shared: Shared, split: Split): void {
     scrollTrigger: when(CHAPTER.title),
   });
   const hint = split(one(root, '.people-hint'), { type: 'words', mask: 'words' }).words;
+
   gsap.from(hint, {
     yPercent: 110,
     stagger: 0.04,
@@ -82,7 +80,6 @@ function revealText(root: HTMLElement, shared: Shared, split: Split): void {
   });
 }
 
-// A card's frame, and the join's check after it: the four stems meet once every knot is straight.
 function renderOne(scene: Scene, card: Card): void {
   renderCard(card);
   syncJoin(scene);
@@ -90,10 +87,13 @@ function renderOne(scene: Scene, card: Card): void {
 
 function syncJoin(scene: Scene): void {
   const straight = scene.cards.every(isStraight);
+
   if (straight === scene.joined) {
     return;
   }
+
   scene.joined = straight;
+
   if (straight) {
     scene.join?.play();
   } else {
@@ -101,12 +101,13 @@ function syncJoin(scene: Scene): void {
   }
 }
 
-// The stem and strands, and on desktop each card's arrival, as the section comes up.
 function renderEntryFrame(scene: Scene, progress: number): void {
   renderEntry(scene.threads, progress, scene.curves);
+
   if (scene.phone) {
     return;
   }
+
   for (const card of scene.cards) {
     card.state.arrival = clamp(
       (progress - ENTRY.cardFrom - card.index * ENTRY.cardStep) / ENTRY.cardSpan,
@@ -119,7 +120,6 @@ function renderJoinFrame(scene: Scene): void {
   renderJoin(scene.threads, scene.phone, scene.together.progress, scene.curves);
 }
 
-// Where everything is, measured again: each card's size, the thread's paths, and every frame drawn.
 function paint(scene: Scene): void {
   scene.cards.forEach(sizeCard);
   measureCards(scene.root, scene.cards);
@@ -130,7 +130,6 @@ function paint(scene: Scene): void {
   renderJoinFrame(scene);
 }
 
-// In the middle of the screen a knot unties by itself, one card after another.
 function autoUntie(scene: Scene, card: Card, lit: boolean): void {
   scene.shared.gsap.to(card.state, {
     auto: lit ? 1 : 0,
@@ -141,12 +140,13 @@ function autoUntie(scene: Scene, card: Card, lit: boolean): void {
   });
 }
 
-// Hover and keyboard focus untie a knot too: it unties while its card is pointed at or focused.
 function wantUntied(scene: Scene, card: Card): void {
   const lit = Boolean(card.state.focused || card.state.pointing);
+
   if (lit === card.state.wanted) {
     return;
   }
+
   card.state.wanted = lit;
   scene.shared.gsap.to(card.state, {
     hover: lit ? 1 : 0,
@@ -157,11 +157,10 @@ function wantUntied(scene: Scene, card: Card): void {
   });
 }
 
-// The entry before the cards, each card's arrival on a phone, the automatic untying, and the reset of a
-// pulled knot when the visitor scrolls back above the section.
 function watchScroll(scene: Scene): void {
   const { gsap, ScrollTrigger } = scene.shared;
   const { root, phone, cards } = scene;
+
   gsap.to(scene.entry, {
     progress: 1,
     ease: 'none',
@@ -173,6 +172,7 @@ function watchScroll(scene: Scene): void {
       scrub: SCROLL.scrub,
     },
   });
+
   if (phone) {
     for (const card of cards) {
       gsap.to(card.state, {
@@ -188,7 +188,9 @@ function watchScroll(scene: Scene): void {
       });
     }
   }
+
   const list = one(root, '.people-cards');
+
   for (const card of cards) {
     ScrollTrigger.create({
       trigger: phone ? card.el : list,
@@ -197,6 +199,7 @@ function watchScroll(scene: Scene): void {
       onLeaveBack: () => autoUntie(scene, card, false),
     });
   }
+
   ScrollTrigger.create({
     trigger: root,
     start: 'top bottom',
@@ -209,10 +212,10 @@ function watchScroll(scene: Scene): void {
   });
 }
 
-// The pointer and the keyboard: hover on a card (away from its knot, which is for pulling), and focus.
 function watchPointer(scene: Scene, signal: AbortSignal): void {
   for (const card of scene.cards) {
     const { state } = card;
+
     card.el.addEventListener(
       'focus',
       () => {
@@ -235,6 +238,7 @@ function watchPointer(scene: Scene, signal: AbortSignal): void {
         if (event.pointerType !== 'mouse' || state.dragging) {
           return;
         }
+
         state.pointing = !card.box.contains(event.target as Node);
         wantUntied(scene, card);
       },
@@ -251,11 +255,10 @@ function watchPointer(scene: Scene, signal: AbortSignal): void {
   }
 }
 
-// Pulling: the thread resists and stretches. Far enough and it springs straight; let go early and it
-// tangles back. Phones pull sideways only, so a vertical swipe always scrolls the page.
 function dragCard(scene: Scene, card: Card): Draggable {
   const { gsap } = scene.shared;
   const { state } = card;
+
   return Draggable.create(document.createElement('div'), {
     trigger: card.box,
     type: scene.phone ? 'x' : 'x,y',
@@ -264,6 +267,7 @@ function dragCard(scene: Scene, card: Card): Draggable {
       gsap.set(this.target, { x: 0, y: 0 });
       this.update();
       const { clientY } = (event as TouchEvent).changedTouches?.[0] ?? (event as MouseEvent);
+
       state.at = clamp((clientY - card.box.getBoundingClientRect().top) / state.height);
       state.dragging = true;
       state.pointing = false;
@@ -272,6 +276,7 @@ function dragCard(scene: Scene, card: Card): Draggable {
     onDrag() {
       const far = Math.hypot(this.x, this.y);
       const give = 1 / (1 + far / PULL.far);
+
       state.dx = this.x * give;
       state.dy = this.y * give;
       state.pull = clamp((far - PULL.start) / PULL.span);
@@ -280,6 +285,7 @@ function dragCard(scene: Scene, card: Card): Draggable {
     onRelease() {
       state.dragging = false;
       const straight = state.pull > PULL.straightAbove;
+
       gsap.to(state, {
         pull: straight ? 1 : 0,
         duration: straight ? PULL.straightDuration : PULL.slackDuration,
@@ -300,7 +306,6 @@ function dragCard(scene: Scene, card: Card): Draggable {
   })[0];
 }
 
-// Builds the scene's cards and threads, and the join that the cards' straightness plays.
 function buildScene(
   root: HTMLElement,
   shared: Shared,
@@ -325,6 +330,7 @@ function buildScene(
     join: null,
     joined: false,
   };
+
   scene.join = shared.gsap.to(scene.together, {
     progress: 1,
     duration: JOIN.duration,
@@ -336,24 +342,27 @@ function buildScene(
     cards.map((card) => card.el),
     { transformOrigin: '50% 0' },
   );
+
   return scene;
 }
 
-// The solo stub has no section above it: the copy the page carries is hidden here.
 function hideStubCopy(root: HTMLElement, shared: Shared): void {
   if (root.contains(shared.carried.el)) {
     shared.gsap.set(shared.carried.el, { autoAlpha: 0 });
   }
 }
 
-// The text reveals, and the cards: every split is kept, so the cleanup can put the words back.
 function mountScene(root: HTMLElement, shared: Shared, splits: SplitText[]): Scene {
   const split: Split = (target, vars) => {
     const result = SplitText.create(target, vars);
+
     splits.push(result);
+
     return result;
   };
+
   revealText(root, shared, split);
+
   return buildScene(
     root,
     shared,
@@ -361,17 +370,18 @@ function mountScene(root: HTMLElement, shared: Shared, splits: SplitText[]): Sce
   );
 }
 
-// The listeners and the pulls of the section, returned so the cleanup can take them back.
 function wire(scene: Scene, signal: AbortSignal): Draggable[] {
   watchScroll(scene);
   watchPointer(scene, signal);
+
   return scene.cards.map((card) => dragCard(scene, card));
 }
 
 export const initPeople: SectionMotion['init'] = (root, shared) => {
   if (shared.conditions.reduce) {
-    return undefined; // still: the quote above the change, a straight line in each card
+    return undefined;
   }
+
   shared.gsap.registerPlugin(Draggable, SplitText, ScrambleTextPlugin);
   root.dataset.motion = '';
   hideStubCopy(root, shared);
@@ -382,8 +392,10 @@ export const initPeople: SectionMotion['init'] = (root, shared) => {
   const listen = new AbortController();
   const drags = wire(scene, listen.signal);
   const refresh = () => paint(scene);
+
   shared.ScrollTrigger.addEventListener('refresh', refresh);
   paint(scene);
+
   return () => {
     shared.ScrollTrigger.removeEventListener('refresh', refresh);
     listen.abort();

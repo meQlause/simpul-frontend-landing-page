@@ -1,5 +1,3 @@
-// The one object that crosses every section boundary. It is an order, then a message, a label, a
-// notification and a card, and it must stay recognisably the same thing.
 const TEXT = {
   order: 'Order · Mrs. Sri',
   message: 'Three cases for Mrs. Sri are ready to ship.',
@@ -17,12 +15,15 @@ export interface Carried {
 
 export function createCarried(): Carried {
   const node = document.createElement('div');
+
   node.className = 'carried';
-  node.setAttribute('aria-hidden', 'true'); // illustration; the sections' own text says the same thing
+  node.setAttribute('aria-hidden', 'true');
   const setForm = (form: CarriedForm) => {
     node.dataset.form = form;
     node.textContent = TEXT[form];
   };
+
   setForm('order');
+
   return { el: node, setForm };
 }

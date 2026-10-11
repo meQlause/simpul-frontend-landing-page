@@ -12,31 +12,26 @@ import { renderFrame } from './quiet-by-design.render';
 import type { Carousel, Curves, Scene } from './quiet-by-design.scene';
 import { NEAR_MARGIN, PERCENT, RULE_REVEAL, SCRUB, TAKE, WINDOW } from './quiet-by-design.tuning';
 
-// Quiet by design. Not pinned as a section (section 7 is): the commitments scroll past while the stage
-// beside them stays in view. Where the vanilla page used sticky, the stage is a ScrollTrigger pin here.
-// The storm and the heap are physics, recorded ahead of time and played back by one scroll clock.
-
 const END_AT_BOTTOM = 'bottom bottom';
 
-// Matter.js, once it has arrived. Kept for later rebuilds, so a resize never loads it twice.
 let matter: Matter | null = null;
 
 type Split = (target: Element, vars: Parameters<typeof SplitText.create>[1]) => SplitText;
 type Measured = Pick<Scene, 'layout' | 'plan' | 'roles' | 'starts'>;
 type Base = Omit<Scene, keyof Measured>;
 
-// The text arrives as it comes into view; scrolling back takes it away again.
 const when = (trigger: Element, start: string) => ({
   trigger,
   start,
   toggleActions: 'play none none reverse',
 });
 
-// Every split the section makes is kept, so the cleanup can put the words back.
 function splitterOf(splits: SplitText[]): Split {
   return (target, vars) => {
     const result = SplitText.create(target, vars);
+
     splits.push(result);
+
     return result;
   };
 }
@@ -57,12 +52,12 @@ function curvesOf(gsap: Shared['gsap']): Curves {
   };
 }
 
-// The eyebrow, the chapter, the title and the lead: each arrives as its section comes into view.
 function revealText(root: HTMLElement, shared: Shared, split: Split): void {
   const { gsap } = shared;
   const words = wordsOf(split);
   const chapter = one(root, '.quiet-chapter');
   const chapterText = chapter.textContent ?? '';
+
   gsap.from(split(one(root, '.quiet .eyebrow'), { type: 'chars' }).chars, {
     autoAlpha: 0,
     y: 6,
@@ -97,12 +92,12 @@ function revealText(root: HTMLElement, shared: Shared, split: Split): void {
   });
 }
 
-// The layout, the physics and the roles, measured now: the same again on every refresh.
 function measured(board: Scene['board'], phone: boolean, take: number[]): Measured {
   const base = measureLayout(board, phone);
   const plan: Plan = !phone && matter ? simulate(matter, base, take) : settle(base, take);
   const count = board.notes.length;
   const roles = rolesOf(plan, count);
+
   return {
     layout: { ...base, lift: liftOf(base, plan, count) },
     plan,
@@ -111,11 +106,11 @@ function measured(board: Scene['board'], phone: boolean, take: number[]): Measur
   };
 }
 
-// The rules of the list: each reveals as it comes in, and on desktop the one in the middle is shown.
 function watchRules(base: Base, words: (target: Element) => Element[]): void {
   const { shared, board, carousel, phone } = base;
   const { gsap, ScrollTrigger } = shared;
   const span = phone ? WINDOW.phone : WINDOW.desktop;
+
   board.rules.forEach((rule, index) => {
     gsap
       .timeline({ defaults: { ease: shared.ease.out }, scrollTrigger: when(rule, 'top 88%') })
@@ -148,8 +143,6 @@ function watchRules(base: Base, words: (target: Element) => Element[]): void {
   });
 }
 
-// The stage (and the desktop index) stays in view while the commitments scroll past. That is what the
-// vanilla sticky rule did; inside the smoother it is a pin for the length of its column.
 function pinInView(
   shared: Shared,
   trigger: HTMLElement,
@@ -168,33 +161,33 @@ function pinInView(
   });
 }
 
-// ScrollTrigger makes its own spacer after it has measured the pin, so the pin is measured outside any box
-// and loses the bleed margins the spacer takes over (phones). A spacer already in the page keeps them, so the
-// stage is wrapped here, before the pin, and unwrapped by the cleanup.
 function wrapStage(stage: HTMLElement): HTMLElement {
   const spacer = document.createElement('div');
+
   spacer.className = 'pin-spacer';
-  // Keep the same grid rows while ScrollTrigger reverts the native spacer to measure the column.
   spacer.style.gridArea = getComputedStyle(stage).gridArea;
   stage.before(spacer);
   spacer.append(stage);
-  stage.style.width = '100%'; // the bleed margins are the spacer's; the stage fills it
+  stage.style.width = '100%';
+
   return spacer;
 }
 
-// The board, its text, its index and its rules, in the vanilla order. Nothing here is measured yet.
 function mountBase(root: HTMLElement, shared: Shared, split: Split): Base {
   const phone = shared.conditions.phone;
   const take = Object.values(phone ? TAKE.phone : TAKE.desktop);
   const board = buildBoard(root, take);
   const stageSpacer = wrapStage(board.stage);
+
   revealText(root, shared, split);
   const carousel: Carousel = phone
     ? { index: null, slides: [], bars: [], opened: -1 }
     : buildIndex(shared, board.body, board.rules, wordsOf(split));
+
   if (carousel.index) {
     root.dataset.index = '';
   }
+
   const base: Base = {
     board,
     shared,
@@ -205,22 +198,25 @@ function mountBase(root: HTMLElement, shared: Shared, split: Split): Base {
     feel: { noise: 0, felt: 0 },
     carousel,
   };
-  openFirst(shared, carousel); // never empty: the first one is there before its turn
+
+  openFirst(shared, carousel);
   watchRules(base, wordsOf(split));
   pinInView(shared, board.stage, board.body, stageSpacer);
+
   if (carousel.index) {
     pinInView(shared, one(carousel.index, '.quiet-index-view'), carousel.index);
   }
+
   return base;
 }
 
-// Matter.js only arrives as the section comes near, and only on desktop.
 function arriveNear(root: HTMLElement, phone: boolean, onArrive: () => void): IntersectionObserver {
   const near = new IntersectionObserver(
     ([entry]) => {
       if (!entry.isIntersecting) {
         return;
       }
+
       near.disconnect();
       void import('matter-js').then((module) => {
         matter = module.default;
@@ -229,44 +225,47 @@ function arriveNear(root: HTMLElement, phone: boolean, onArrive: () => void): In
     },
     { rootMargin: NEAR_MARGIN },
   );
+
   if (!phone && !matter) {
     near.observe(root);
   }
+
   return near;
 }
 
-// The solo stub has no section above it: the copy the page carries is hidden here.
 function hideStubCopy(root: HTMLElement, shared: Shared): void {
   if (root.contains(shared.carried.el)) {
     shared.gsap.set(shared.carried.el, { autoAlpha: 0 });
   }
 }
 
-// The survivor hands its card on: the handoff object and the exit it left are taken back off it.
 function resetSurvivor(survivor: HTMLElement): void {
   survivor.removeAttribute('style');
   survivor.classList.remove('is-clean');
+
   for (const key of ['handoffObject', 'exitX', 'exitY', 'exitAngle']) {
     delete survivor.dataset[key];
   }
 }
 
-// The stage goes back to its own place in the section, out of the spacer made for its pin.
 function unwrapStage(stage: HTMLElement): void {
   const spacer = stage.parentElement;
+
   if (spacer?.classList.contains('pin-spacer')) {
     spacer.replaceWith(stage);
   }
 }
 
-// Puts back what the section changed on the page: its nodes, its styles, its datasets, its index.
 function cleanupOf(scene: Scene, dispose: () => void): () => void {
   const { board, carousel } = scene;
+
   return () => {
     dispose();
+
     for (const node of [...board.extras, ...board.notes.map((note) => note.el), board.svg]) {
       node.remove();
     }
+
     resetSurvivor(board.survivor);
     board.panel.removeAttribute('style');
     board.rules.forEach((rule) => rule.classList.remove('is-active'));
@@ -278,8 +277,6 @@ function cleanupOf(scene: Scene, dispose: () => void): () => void {
   };
 }
 
-// Plays the frames: the clock that scrubs them, the restless board, the refresh on every resize, and the
-// arrival of Matter.js. Returns how to stop all of it.
 function playScene(scene: Scene, root: HTMLElement): () => void {
   const { ScrollTrigger, gsap } = scene.shared;
   let alive = true;
@@ -287,11 +284,13 @@ function playScene(scene: Scene, root: HTMLElement): () => void {
     Object.assign(scene, measured(scene.board, scene.phone, scene.take));
     renderFrame(scene);
   };
+
   const restless = (time: number) => {
     if (ScrollTrigger.isInViewport(scene.board.panel)) {
       shake(scene.board.panel, scene.feel, time);
     }
   };
+
   gsap.ticker.add(restless);
   gsap.to(scene.clock, {
     p: 1,
@@ -306,6 +305,7 @@ function playScene(scene: Scene, root: HTMLElement): () => void {
       onRefresh();
     }
   });
+
   return () => {
     alive = false;
     near.disconnect();
@@ -316,8 +316,9 @@ function playScene(scene: Scene, root: HTMLElement): () => void {
 
 export const initQuiet: SectionMotion['init'] = (root, shared) => {
   if (shared.conditions.reduce) {
-    return undefined; // still: the five commitments beside one clean card
+    return undefined;
   }
+
   shared.gsap.registerPlugin(SplitText, ScrambleTextPlugin, MotionPathPlugin);
   root.dataset.motion = '';
   hideStubCopy(root, shared);
@@ -327,6 +328,7 @@ export const initQuiet: SectionMotion['init'] = (root, shared) => {
   const base = mountBase(root, shared, splitterOf(splits));
   const scene: Scene = { ...base, ...measured(base.board, base.phone, base.take) };
   const stopPlaying = playScene(scene, root);
+
   return cleanupOf(scene, () => {
     stopPlaying();
     splits.forEach((result) => result.revert());

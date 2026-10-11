@@ -19,9 +19,6 @@ import {
 } from './quiet-by-design.tuning';
 import { born, pose, stepAt, total, type Geo, type Plan } from './heap';
 
-// The storm, recorded once with real collisions and played back by scroll. Matter.js arrives as a
-// parameter, typed here by the part of it this file uses, so the module never imports the library: the
-// library loads only where the section needs it (the same rule as problem.physics.ts).
 interface Vector {
   x: number;
   y: number;
@@ -50,7 +47,7 @@ export interface Matter {
     rectangle(x: number, y: number, width: number, height: number, options?: object): Body;
   };
   Composite: {
-    add(world: object, bodies: unknown): unknown; // the library takes more than bodies; this file adds bodies
+    add(world: object, bodies: unknown): unknown;
     remove(world: object, body: unknown): unknown;
   };
   Body: {
@@ -60,7 +57,6 @@ export interface Matter {
   Sleeping: { set(body: Body, asleep: boolean): void };
 }
 
-// One card: its body, how it is thrown, and the frame it goes on the stage.
 interface Throw {
   body: Body;
   velocity: Vector;
@@ -68,7 +64,6 @@ interface Throw {
   born: number;
 }
 
-// One storm, in progress: the engine, the cards, the frames recorded so far, and what is taken so far.
 interface Run {
   Matter: Matter;
   engine: Engine;
@@ -79,11 +74,11 @@ interface Run {
   take: readonly number[];
 }
 
-// The four walls and the survivor's floor-piece: they hold the heap on the stage and nothing else.
 function walls(Matter: Matter, geo: Geo): Body[] {
   const { Wp, Hp, floor, cx, sw, sh } = geo;
   const wall = { isStatic: true, restitution: 0.6, friction: 0.4 };
   const { Bodies } = Matter;
+
   return [
     Bodies.rectangle(Wp / 2, floor + WALL.depth, Wp * WALL.span, WALL.thick, wall),
     Bodies.rectangle(Wp / 2, -WALL.depth, Wp * WALL.span, WALL.thick, wall),
@@ -96,7 +91,6 @@ function walls(Matter: Matter, geo: Geo): Body[] {
   ];
 }
 
-// A card comes from one of four sides, with a heading that points into the stage.
 const SIDE_HEADING = [0, Math.PI, Math.PI / 2, -Math.PI / 2];
 
 function throwOf(
@@ -117,6 +111,7 @@ function throwOf(
   const [left, top] = starts[side];
   const heading = SIDE_HEADING[side] + (random() - CENTRED) * HEADING;
   const speed = SPEED.base + random() * SPEED.span;
+
   return {
     body: Matter.Bodies.rectangle(left, top, cw, ch, {
       chamfer: { radius: CARD.chamfer },
@@ -129,20 +124,20 @@ function throwOf(
   };
 }
 
-// Records every card's pose for this frame, as x, y and angle in one flat array per card.
 function recordFrame(frames: Float32Array[], throws: Throw[], frame: number): void {
   throws.forEach((item, index) => {
     const { position, angle } = item.body;
+
     frames[index].set([position.x, position.y, angle], frame * POSE_SIZE);
   });
 }
 
-// Puts on the stage the cards whose frame has come, and throws each one.
 function launchDue(run: Run, frame: number): void {
   run.throws.forEach((item, index) => {
     if (frame !== item.born) {
       return;
     }
+
     run.Matter.Composite.add(run.engine.world, item.body);
     run.Matter.Body.setVelocity(item.body, item.velocity);
     run.Matter.Body.setAngularVelocity(item.body, item.spin);
@@ -150,9 +145,9 @@ function launchDue(run: Run, frame: number): void {
   });
 }
 
-// The storm is over: gravity switches on, and the cards grip each other and the floor.
 function gripStorm(run: Run): void {
   run.engine.gravity.y = GRAVITY;
+
   for (const item of run.throws) {
     Object.assign(item.body, {
       restitution: 0.1,
@@ -163,41 +158,48 @@ function gripStorm(run: Run): void {
   }
 }
 
-// A commitment takes its cards off the top of the heap, and the rest are woken to fall.
 function releaseStep(run: Run, step: number): void {
   const { Matter, throws, alive } = run;
+
   alive.sort((first, second) => throws[first].body.position.y - throws[second].body.position.y);
   const top = alive.splice(0, run.take[step]);
+
   run.chosen.push(top);
+
   for (const index of top) {
     Matter.Composite.remove(run.engine.world, throws[index].body);
   }
+
   for (const index of alive) {
-    Matter.Sleeping.set(throws[index].body, false); // what rested on them has to fall
+    Matter.Sleeping.set(throws[index].body, false);
   }
 }
 
-// One physics frame, in the vanilla order: launch, grip, release, step the world, record.
 function runFrame(run: Run, frame: number, removals: number[]): void {
   launchDue(run, frame);
+
   if (frame === Math.round(STORM * FPS)) {
     gripStorm(run);
   }
+
   const step = removals.indexOf(frame);
+
   if (step >= 0) {
     releaseStep(run, step);
   }
+
   run.Matter.Engine.update(run.engine, MS_PER_SECOND / FPS);
   recordFrame(run.frames, run.throws, frame);
 }
 
-// Plays the recorded frames back: linear between two frames, and nothing before a card is born.
 function trackOf(frames: Float32Array[], throws: Throw[], steps: number): Plan['track'] {
   return (index, seconds) => {
     const moment = seconds * FPS;
+
     if (moment < throws[index].born) {
       return null;
     }
+
     const low = Math.min(Math.floor(moment), steps - 1);
     const high = Math.min(low + 1, steps - 1);
     const share = Math.min(moment - low, 1);
@@ -205,17 +207,17 @@ function trackOf(frames: Float32Array[], throws: Throw[], steps: number): Plan['
     const mix = (offset: number) =>
       frame[low * POSE_SIZE + offset] +
       (frame[high * POSE_SIZE + offset] - frame[low * POSE_SIZE + offset]) * share;
+
     return pose(mix(0), mix(1), mix(2));
   };
 }
 
-// Plays the storm frame by frame and records it. The cards are thrown in one after another; gravity
-// switches on when the storm is over; each commitment takes its cards off the top of the heap.
 export function simulate(Matter: Matter, geo: Geo, take: readonly number[]): Plan {
   const count = total(take);
   const random = seeded(SEED);
-  const engine = Matter.Engine.create({ enableSleeping: true }); // a resting heap really rests, instead of creeping
-  engine.gravity.y = 0; // the storm: no gravity yet
+  const engine = Matter.Engine.create({ enableSleeping: true });
+
+  engine.gravity.y = 0;
   Matter.Composite.add(engine.world, walls(Matter, geo));
   const throws: Throw[] = Array.from({ length: count }, (_unused, index) => ({
     ...throwOf(Matter, index, geo, random),
@@ -232,8 +234,10 @@ export function simulate(Matter: Matter, geo: Geo, take: readonly number[]): Pla
     take,
   };
   const removals = take.map((_unused, step) => Math.round(stepAt(step) * FPS));
+
   for (let frame = 0; frame < steps; frame++) {
     runFrame(run, frame, removals);
   }
+
   return { track: trackOf(run.frames, throws, steps), chosen: run.chosen };
 }

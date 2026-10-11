@@ -3,8 +3,6 @@ import { type Box, type Spot, main, RULE_URLS, shot, spots, view } from './the-p
 import { addNode } from './the-panel.scene';
 import { NUMBER_BOX, RING_PAD } from './the-panel.tuning';
 
-// The window's screen: the captured home screen with its scroll, the four rule frames, the live numbers
-// laid over the captures, the rings and the pointer. Built the vanilla way, at the captures' own size.
 export interface Screen {
   screen: HTMLElement;
   content: HTMLElement;
@@ -20,7 +18,6 @@ const ruleHtml = (url: string) => `<img class="panel-rule" src="${url}" alt="">`
 const CURSOR_HTML =
   '<svg class="panel-cursor" viewBox="0 0 24 24"><path d="M4 2.5 19.5 12l-6.6 1.6 3.9 7-2.9 1.6-3.9-7L5 20z"/></svg>';
 
-// Sets a node over a box of the capture, grown by pad on every side.
 export function placeOn(node: HTMLElement, box: Box, pad: number): void {
   Object.assign(node.style, {
     left: `${box.x - pad}px`,
@@ -30,9 +27,9 @@ export function placeOn(node: HTMLElement, box: Box, pad: number): void {
   });
 }
 
-// A live number, set in the panel's own type on the panel's own background, over the captured one.
 function numberOn(content: HTMLElement, spot: Spot): HTMLElement {
   const node = addNode(content, 'span', 'panel-num', spot.text);
+
   Object.assign(node.style, {
     left: `${spot.x - NUMBER_BOX.x}px`,
     top: `${spot.y - NUMBER_BOX.y}px`,
@@ -44,15 +41,17 @@ function numberOn(content: HTMLElement, spot: Spot): HTMLElement {
     color: spot.color,
     background: spot.bg,
   });
+
   return node;
 }
 
-// A ring around a spot. Without a spot it is placed later (the rule form's focus ring).
 function ringOn(parent: HTMLElement, spot?: Box, pad = 0): HTMLElement {
   const node = addNode(parent, 'span', 'panel-ring', '');
+
   if (spot) {
     placeOn(node, spot, pad);
   }
+
   return node;
 }
 
@@ -60,6 +59,7 @@ export function buildScreen(win: HTMLElement): Screen {
   const screen = addNode(win, 'div', 'panel-screen', HOME_HTML + RULE_URLS.map(ruleHtml).join(''));
   const scroller = one(screen, '.panel-scroll');
   const content = one(screen, '.panel-content');
+
   Object.assign(screen.style, { width: `${view.width}px`, height: `${view.height}px` });
   Object.assign(scroller.style, {
     left: `${main.x}px`,
@@ -73,9 +73,11 @@ export function buildScreen(win: HTMLElement): Screen {
     order: ringOn(content, spots.order, RING_PAD.order),
     strip: ringOn(content, spots.strip, RING_PAD.strip),
     item: ringOn(content, spots.item, RING_PAD.item),
-    focus: ringOn(screen), // moves between the rule form's fields
+    focus: ringOn(screen),
   };
+
   screen.insertAdjacentHTML('beforeend', CURSOR_HTML);
+
   return {
     screen,
     content,

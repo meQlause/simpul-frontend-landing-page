@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react';
 
-// One person: the knot (its still line is the page without motion), the face, the name, what they say
-// today, and what changes. Each card is focusable, so a keyboard visitor can untie its knot.
 function PersonCard({
   person,
   face,
@@ -43,7 +41,6 @@ function PersonCard({
   );
 }
 
-// The four cards, in the order of the knots. Their faces are drawn where each person is shown.
 export function PeopleCards() {
   return (
     <ul className="people-cards" data-people="">

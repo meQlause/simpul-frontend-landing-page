@@ -1,8 +1,6 @@
 import './quiet-by-design.css';
 import { QuietHead, QuietRules, QuietStage } from './QuietByDesign.parts';
 
-// Quiet by design: the five commitments beside one clean card. With motion, the stage is pinned in view
-// while the commitments scroll past (quiet-by-design.motion.ts).
 export function QuietByDesign() {
   return (
     <section

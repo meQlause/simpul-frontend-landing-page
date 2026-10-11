@@ -8,24 +8,20 @@ import { stacked } from './the-panel.stacked';
 import { SHOT_STEP, SHOT_TEXT_AT, SHOT_TITLE_AT } from './the-panel.tuning';
 import { windowed } from './the-panel.window';
 
-// The panel. Desktop: pinned, one window of the real panel scrubbed through the three screens. Phones: the
-// three still captures, stacked with their captions, unpinned. With reduced motion: the still page.
-// Everything is a function of the scroll clock, so it replays backwards.
-
 type Split = (target: Element, vars: Parameters<typeof SplitText.create>[1]) => SplitText;
 
-// The text arrives as it comes into view; scrolling back takes it away again.
 const when = (trigger: Element, start: string) => ({
   trigger,
   start,
   toggleActions: 'play none none reverse',
 });
 
-// Every split the section makes is kept, so the cleanup can put the words back.
 function splitterOf(splits: SplitText[]): Split {
   return (target, vars) => {
     const result = SplitText.create(target, vars);
+
     splits.push(result);
+
     return result;
   };
 }
@@ -35,18 +31,17 @@ const wordsOf =
   (target: Element): Element[] =>
     split(target, { type: 'words', mask: 'words' }).words;
 
-// The solo stub has no section above it: the copy the page carries is hidden here.
 function hideStubCopy(root: HTMLElement, shared: Shared): void {
   if (root.contains(shared.carried.el)) {
     shared.gsap.set(shared.carried.el, { autoAlpha: 0 });
   }
 }
 
-// The eyebrow, the chapter, the title, the lead and the foot each arrive as the section comes into view.
 function revealText(panel: Panel, split: Split, chapter: HTMLElement, chapterText: string): void {
   const { root, shared } = panel;
   const { gsap, ease } = shared;
   const words = wordsOf(split);
+
   gsap.from(split(one(root, '.panel .eyebrow'), { type: 'chars' }).chars, {
     autoAlpha: 0,
     y: 6,
@@ -88,11 +83,12 @@ function revealText(panel: Panel, split: Split, chapter: HTMLElement, chapterTex
   });
 }
 
-// Each screen's caption: its icon, its heading and its sentence arrive one after the other.
 function revealShots(panel: Panel, words: (target: Element) => Element[]): void {
   const { root, shared, shots } = panel;
+
   shots.forEach((item, index) => {
     const step = index * SHOT_STEP;
+
     shared.gsap
       .timeline({
         defaults: { ease: shared.ease.out },
@@ -111,8 +107,9 @@ function revealShots(panel: Panel, words: (target: Element) => Element[]): void 
 
 export const initPanel: SectionMotion['init'] = (root, shared) => {
   if (shared.conditions.reduce) {
-    return undefined; // three still screenshots with captions
+    return undefined;
   }
+
   shared.gsap.registerPlugin(MotionPathPlugin, SplitText, ScrambleTextPlugin);
   root.dataset.motion = '';
   hideStubCopy(root, shared);
@@ -121,9 +118,11 @@ export const initPanel: SectionMotion['init'] = (root, shared) => {
   const splits: SplitText[] = [];
   const panel = mountPanel(root, shared);
   const split = splitterOf(splits);
+
   revealText(panel, split, chapter, chapterText);
   revealShots(panel, wordsOf(split));
   const stop = shared.conditions.phone ? stacked(panel) : windowed(panel);
+
   return () => {
     stop();
     shared.handoff.receive(root, false);

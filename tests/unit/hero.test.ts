@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { render } from '../../src/entry-server';
 import { sectionOf, textOf } from './html';
 
-// The port of ../landing/scripts/check-hero.mjs: what the hero says and links to, with no motion.
 const html = render();
 const hero = sectionOf(html, '01-hero');
 
 describe('section 1, the hero', () => {
   it('says everything with no motion', () => {
     const text = textOf(hero);
+
     for (const copy of [
       'Your information flow',
       'Busy conversations.',

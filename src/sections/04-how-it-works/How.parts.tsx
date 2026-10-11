@@ -1,7 +1,3 @@
-// The stages of the journey, split out so each stays inside the JSX depth limit. Each renders exactly
-// the markup it replaces in How.tsx: no wrapper of its own.
-
-// The message the journey starts from: a warehouse group chat, and the one message in it.
 export function HowMessagePanel() {
   return (
     <li className="how-panel how-panel--message" data-panel="message">
@@ -25,7 +21,6 @@ export function HowMessagePanel() {
   );
 }
 
-// Station 1: the message becomes a label, which stays tied to the message it came from.
 export function HowUnderstandPanel() {
   return (
     <li className="how-panel how-panel--understand" data-panel="understand">
@@ -68,7 +63,6 @@ export function HowUnderstandPanel() {
   );
 }
 
-// Station 2: the rules the manager wrote. One matches; the AI never sees them.
 export function HowDecidePanel() {
   return (
     <li className="how-panel how-panel--decide" data-panel="decide">
@@ -95,7 +89,6 @@ export function HowDecidePanel() {
   );
 }
 
-// Station 3: the label routes to a role, not a person. The role card turns to show who holds it today.
 export function HowRoutePanel() {
   return (
     <li className="how-panel how-panel--route" data-panel="route">
@@ -126,7 +119,6 @@ export function HowRoutePanel() {
   );
 }
 
-// Station 4 and 5: the hold ring counts sixty seconds, then the notification lands on the phone.
 export function HowArrivePanel() {
   return (
     <li className="how-panel how-panel--arrive" data-panel="arrive">

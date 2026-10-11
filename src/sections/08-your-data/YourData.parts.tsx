@@ -1,10 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { CELL_KIND, GRID, LAYERS, type CellCode, type LayerDrawing } from './your-data.shapes';
 
-// The drawings and lists of section 8, split out so each stays inside the JSX depth limit. Each renders
-// exactly the markup it replaces in YourData.tsx: no wrapper of its own.
-
-// Simpul's side: three layers on its line of the thread, each empty but for the one thing it holds.
 export function DataOurs() {
   return (
     <div className="data-ours" data-ours="">
@@ -18,7 +14,6 @@ export function DataOurs() {
   );
 }
 
-// The empty layer every one of Simpul's things stands on: a plate, its cells as ghosts, and a shadow.
 function KeptDrawing({ children }: { children: ReactNode }) {
   return (
     <svg aria-hidden="true" viewBox="0 0 300 192" width="300" height="192">
@@ -97,7 +92,6 @@ function KeptLink() {
   );
 }
 
-// The customer's side: their database as five layers of data, and the name of each beside it.
 export function DataYours() {
   return (
     <figure className="data-yours">
@@ -120,8 +114,6 @@ export function DataYours() {
   );
 }
 
-// One layer of the customer's data: a plate and its 36 cells. The cells fill from the back corner
-// (index.js sets their opacity and scale from data-far).
 function DataLayer({ layer }: { layer: LayerDrawing }) {
   return (
     <g data-layer="">
@@ -130,6 +122,7 @@ function DataLayer({ layer }: { layer: LayerDrawing }) {
       <g transform={layer.transform}>
         {GRID.map((cell, index) => {
           const kind = CELL_KIND[layer.fills[index] as CellCode];
+
           return (
             <rect
               key={`${cell.x},${cell.y}`}

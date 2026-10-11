@@ -20,7 +20,6 @@ export function QuietHead() {
   );
 }
 
-// The stage: a board the thread passes behind, with one clean card on it.
 export function QuietStage() {
   return (
     <figure className="quiet-stage" aria-hidden="true">
@@ -48,7 +47,6 @@ interface RuleProps {
   children: ReactNode;
 }
 
-// One commitment in the list: its icon's drawing, its heading and its sentence.
 function RuleItem({ name, title, text, children }: RuleProps) {
   return (
     <li className="quiet-rule" data-rule={name}>

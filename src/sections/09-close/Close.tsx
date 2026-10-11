@@ -1,7 +1,5 @@
 import './close.css';
 
-// Section 9, the close: the headline, the four "is not" lines, the lead, the knot with the one form in it,
-// and the footer. The form works from the first paint; the motion only wires its submit and tightens the knot.
 export function Close() {
   return (
     <section

@@ -14,8 +14,6 @@ export interface SectionView {
   Component: ComponentType;
 }
 
-// The page, in order: the markup only, safe to render on the server. Each section's motion is
-// registered separately, in ./motions.ts, so no animation code is part of the prerender.
 export const SECTIONS: readonly SectionView[] = [
   { id: '01-hero', Component: Hero },
   { id: '02-problem', Component: Problem },

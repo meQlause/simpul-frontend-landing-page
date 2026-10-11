@@ -1,6 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Runs against the production build, so the prerendered page and its hydration are what is tested.
 export default defineConfig({
   testDir: './tests/e2e',
   use: { baseURL: 'http://127.0.0.1:4174' },

@@ -1,7 +1,3 @@
-// The turn's blocks, split out so each stays inside the JSX depth limit. Each renders exactly the markup
-// it replaces in Turn.tsx: no wrapper of its own.
-
-// It does not ask you to … : three drawn gestures, each making its own small motion (turn.motion.ts).
 export function TurnAsks() {
   return (
     <ul className="turn-asks" data-asks="">
@@ -62,7 +58,6 @@ export function TurnAsks() {
   );
 }
 
-// The chat. Two messages carry the signal the layer reads; everything else passes.
 function TurnMessages() {
   return (
     <ol className="turn-messages" data-chat="">
@@ -155,7 +150,6 @@ function TurnMessages() {
   );
 }
 
-// An ordinary group chat, styled as our own. It keeps moving; the layer on top never changes it.
 function TurnWindow() {
   return (
     <div className="turn-window" aria-hidden="true">
@@ -178,7 +172,6 @@ function TurnWindow() {
   );
 }
 
-// The stage: the chat, the layer over it, the accessible sentence and the pause control.
 export function TurnStage() {
   return (
     <figure className="turn-stage">

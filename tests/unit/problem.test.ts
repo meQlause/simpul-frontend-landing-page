@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { render } from '../../src/entry-server';
 import { sectionOf, textOf } from './html';
 
-// The problem has no check script: this is its brief's "What is here" table, plus the shape of the chain.
 const html = render();
 const problem = sectionOf(html, '02-problem');
 const source = (file: string) =>
@@ -12,6 +11,7 @@ const source = (file: string) =>
 describe('section 2, the problem', () => {
   it('says everything in the brief, with no motion', () => {
     const text = textOf(problem);
+
     for (const copy of [
       'The problem',
       'Everyone is working.',
@@ -49,6 +49,7 @@ describe('section 2, the problem', () => {
   it('loads Matter.js only as the section approaches, never with the page', () => {
     const motion = source('problem.motion.ts');
     const physics = source('problem.physics.ts');
+
     expect(motion).toMatch(/import\('matter-js'\)/);
     expect(motion).not.toMatch(/^import (?!type )[^;]*matter-js/m);
     expect(physics).not.toMatch(/^import (?!type )[^;]*matter-js/m);

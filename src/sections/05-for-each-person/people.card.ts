@@ -16,28 +16,26 @@ import {
   TILT,
 } from './people.tuning';
 
-// One person's card: its knot, the thread it hangs on, and the words that give way as it arrives.
-
 type Ease = (share: number) => number;
 type Words = (target: Element) => Element[];
 
 const clamp = (value: number): number => Math.min(1, Math.max(0, value));
-const MIDDLE = 0.5; // a grab starts in the middle of the knot
+const MIDDLE = 0.5;
 
 interface CardState {
-  arrival: number; // 0 to 1: the card has arrived
-  auto: number; // the knot unties by itself, in the middle of the screen
-  hover: number; // the knot unties on hover or focus
-  pull: number; // the knot is being pulled
-  pulled: boolean; // the knot was pulled straight and stays straight
+  arrival: number;
+  auto: number;
+  hover: number;
+  pull: number;
+  pulled: boolean;
   dx: number;
   dy: number;
-  at: number; // where along the knot it was grabbed
-  untied: number; // the untying in use, 0 to 1
+  at: number;
+  untied: number;
   width: number;
   height: number;
-  scale: number; // the knot's scale to fit its card
-  top: Pair; // the card's top and bottom centre, in the section
+  scale: number;
+  top: Pair;
   bottom: Pair;
   focused: boolean;
   pointing: boolean;
@@ -54,7 +52,7 @@ export interface Card {
   line: SVGPathElement;
   loose: SVGPathElement[];
   mouth: SVGPathElement;
-  smile: string; // the mouth as it was drawn, which the page puts back on cleanup
+  smile: string;
   arrive: gsap.core.Timeline;
   relief: gsap.core.Timeline;
   shared: Shared;
@@ -85,10 +83,10 @@ function freshState(): CardState {
   };
 }
 
-// The card arrives: its face pops in, its name rises, and its quote follows.
 function arrivalOf(element: HTMLElement, shared: Shared, words: Words): gsap.core.Timeline {
   const { gsap, ease } = shared;
   const face = one(element, '.person-face');
+
   return gsap
     .timeline({ paused: true, defaults: { ease: ease.out } })
     .from(face, { scale: 0.5, autoAlpha: 0, duration: 0.35, ease: 'back.out(2)' }, ARRIVAL.face)
@@ -100,13 +98,13 @@ function arrivalOf(element: HTMLElement, shared: Shared, words: Words): gsap.cor
     );
 }
 
-// Once untied, the quote gives way to the change, the card warms, and the mouth turns to a smile.
 function reliefOf(element: HTMLElement, shared: Shared, words: Words): gsap.core.Timeline {
   const { gsap } = shared;
   const box = one(element, '.person-knot');
   const mouth = one<SVGPathElement>(element, '.person-mouth');
   const quote = words(one(element, 'blockquote'));
   const smile = mouth.getAttribute('d') ?? '';
+
   return gsap
     .timeline({ paused: true, defaults: { ease: 'power2.out' } })
     .to(box, { backgroundColor: '#edf4e7', duration: 0.7, ease: 'none' }, 0)
@@ -124,20 +122,22 @@ function reliefOf(element: HTMLElement, shared: Shared, words: Words): gsap.core
     );
 }
 
-// A stroke inside the knot's own svg.
 function strokeIn(svg: SVGSVGElement): SVGPathElement {
   const node = svg.appendChild(document.createElementNS(SVG_NS, 'path'));
+
   node.setAttribute('pathLength', '1');
+
   return node;
 }
 
-// Builds a card: its tangle svg in the knot, the strokes it draws with, and its two timelines.
 export function buildCard(element: HTMLElement, index: number, shared: Shared, words: Words): Card {
   const box = one(element, '.person-knot');
   const tangle = box.appendChild(document.createElementNS(SVG_NS, 'svg'));
+
   tangle.setAttribute('class', 'person-tangle');
   const knot = knots[element.dataset.person as keyof typeof knots];
   const mouth = one<SVGPathElement>(element, '.person-mouth');
+
   return {
     el: element,
     index,
@@ -156,21 +156,19 @@ export function buildCard(element: HTMLElement, index: number, shared: Shared, w
   };
 }
 
-// The card's scale to fit its knot, measured again on each refresh.
 export function sizeCard(card: Card): void {
   const { state } = card;
+
   state.width = card.box.clientWidth;
   state.height = card.box.clientHeight;
   state.scale = Math.min(1, (state.width - CARD_SIZE.fit) / CARD_SIZE.base);
   card.tangle.setAttribute('viewBox', `0 0 ${state.width} ${state.height}`);
 }
 
-// The knot's share of untying: a pull, a hover or the timer, and the whole of it once it was pulled straight.
 function shareOf(state: CardState): number {
   return state.pulled ? 1 : Math.max(state.auto, state.hover, state.pull);
 }
 
-// One frame of a card: its knot, drawn untied by its share, and its place on its strand.
 export function renderCard(card: Card): void {
   const { state, knot } = card;
   const share = shareOf(state);
@@ -187,8 +185,10 @@ export function renderCard(card: Card): void {
           `${step ? 'L' : 'M'}${(state.width / 2 + left * state.scale).toFixed(1)},${(top * scaleY).toFixed(1)}`,
       )
       .join('');
+
   card.line.setAttribute('d', toPath(line));
   const shown = clamp((state.arrival - SHOWN.from) / SHOWN.span);
+
   drawStroke(card.line, shown);
   card.loose.forEach((node, index) => {
     node.setAttribute('d', toPath(loose[index]));
@@ -198,11 +198,10 @@ export function renderCard(card: Card): void {
   card.shared.gsap.set(card.el, {
     rotation: TILT[card.index].degrees * (1 - card.hang(state.arrival)),
     opacity: clamp(state.arrival * OPACITY_RATE),
-  }); // opacity, not autoAlpha: the card stays focusable
+  });
   card.arrive.progress(state.arrival);
   card.relief.progress(share);
   state.untied = share;
 }
 
-// A knot is straight once it has passed the untying that makes it so.
 export const isStraight = (card: Card): boolean => card.state.untied >= STRAIGHT_AT;

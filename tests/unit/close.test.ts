@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { render } from '../../src/entry-server';
 import { sectionOf, textOf } from './html';
 
-// The port of ../landing/scripts/check-close.mjs: section 9 works with no motion. The logo, the headline, one real
-// button, the four lines, and a form that asks for one thing.
 const close = sectionOf(render(), '09-close');
 const text = textOf(close);
 
@@ -37,6 +35,7 @@ describe('section 9, the close', () => {
 
   it('asks for one thing: the email field, and a second field only a bot fills', () => {
     const fields = [...close.matchAll(/<input\b[^>]*name="(\w+)"[^>]*>/g)];
+
     expect(fields.map((match) => match[1])).toEqual(['email', 'company']);
     expect(fields[1][0], 'the trap is out of reach of people and screen readers').toMatch(
       /tabindex="-1"[^>]*aria-hidden="true"/,

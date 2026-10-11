@@ -4,8 +4,6 @@ import { render } from '../../src/entry-server';
 import spots from '../../src/sections/07-the-panel/screens/spots.json';
 import { sectionOf, textOf } from './html';
 
-// The port of ../landing/scripts/check-panel.mjs: the still section's words, its three described captures, its
-// anchors, the screens as files, and the panel's own figures from spots.json.
 const html = render();
 const panel = sectionOf(html, '07-the-panel');
 const text = textOf(panel);
@@ -24,7 +22,7 @@ describe('section 7, the panel', () => {
       'A little attention. A smoother flow. Three areas to review.',
       'A notification rule',
       'You define the flow. See the impact before you save.',
-      'Our target: up and running in under twenty minutes.', // a target, and called one
+      'Our target: up and running in under twenty minutes.',
     ]) {
       expect(text, copy).toContain(copy);
     }
@@ -32,11 +30,14 @@ describe('section 7, the panel', () => {
 
   it('has three still screenshots, each described, and exactly one thread entrance and exit', () => {
     const images = [...panel.matchAll(/<img\b[^>]*src="([^"]+)"[^>]*alt="([^"]+)"/g)];
+
     expect(images, 'three still screenshots, each described').toHaveLength(3);
+
     for (const [, src, alt] of images) {
       expect(src).toMatch(/\.webp$/);
       expect(alt.length, src).toBeGreaterThan(0);
     }
+
     for (const anchor of ['in', 'out']) {
       expect(
         panel.match(new RegExp(`data-thread-${anchor}\\b`, 'g')),
@@ -47,6 +48,7 @@ describe('section 7, the panel', () => {
 
   it('copies the seven screens as files, next to the section', () => {
     const files = readdirSync(SCREENS);
+
     for (const name of [
       'home',
       'home-content',
@@ -59,6 +61,7 @@ describe('section 7, the panel', () => {
       expect(files, name).toContain(`${name}.webp`);
       expect(existsSync(new URL(`${name}.webp`, SCREENS)), name).toBe(true);
     }
+
     expect(files).toContain('spots.json');
   });
 

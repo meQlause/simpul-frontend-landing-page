@@ -9,8 +9,6 @@ import { initPanel } from './07-the-panel/the-panel.motion';
 import { initYourData } from './08-your-data/your-data.motion';
 import { initClose } from './09-close/close.motion';
 
-// Every section's motion, in page order. The ids and `receives` are the hand-off contract from
-// ../landing/README.md and must not change.
 export const MOTIONS: readonly SectionMotion[] = [
   { id: '01-hero', receives: null, init: initHero },
   { id: '02-problem', receives: { form: 'order', thread: 'sage' }, init: initProblem },

@@ -4,13 +4,9 @@ import type { Shared } from '../../motion/types';
 import type { Carousel, Slide } from './quiet-by-design.scene';
 import { READS_MOVE, SLIDE } from './quiet-by-design.tuning';
 
-// The desktop index: one commitment at a time holds the column beside the stage. Built from the real list,
-// hidden from screen readers, which read the real one. Each commitment has its own drawing and its own loop.
-
 type Part = (name: string) => Element[];
 type Move = (part: Part, timeline: gsap.core.Timeline) => gsap.core.Timeline;
 
-// Each drawing again, in parts, so it can move the way its commitment does.
 const DRAWING: Record<string, string> = {
   waits:
     '<circle cx="12" cy="13.5" r="7.5"/><path d="M9.5 3h5M12 3v3"/><path data-part="hand" d="M12 13.5V8.6"/>',
@@ -23,7 +19,6 @@ const DRAWING: Record<string, string> = {
     '<path data-part="lid" d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle data-part="pupil" cx="12" cy="12" r="2.6"/><path d="M4 20 20 4"/>',
 };
 
-// What each does while it is the one being shown. Slow and small: the page does not shout.
 const ORIGIN_CENTRE = '12 12';
 const SINE_IN_OUT = 'sine.inOut';
 const MOVES: Record<string, Move> = {
@@ -122,7 +117,6 @@ const MOVES: Record<string, Move> = {
       ),
 };
 
-// The figure in each sentence, which the index marks.
 const FIGURE: Record<string, string> = {
   waits: '60 seconds',
   limit: '6 per person per hour',
@@ -131,8 +125,6 @@ const FIGURE: Record<string, string> = {
   reads: 'Summaries only',
 };
 
-// One commitment's list item as the index draws it: the heading's first word in the page's soft tone,
-// and the sentence's figure marked.
 function itemHtml(rule: HTMLElement): string {
   const name = rule.dataset.rule ?? '';
   const title = (one(rule, 'h3').textContent ?? '').replace(
@@ -141,14 +133,17 @@ function itemHtml(rule: HTMLElement): string {
   );
   const figure = FIGURE[name];
   const text = (one(rule, 'p').textContent ?? '').replace(figure, `<mark>${figure}</mark>`);
+
   return `<li data-rule="${name}"><span class="quiet-icon"><svg viewBox="0 0 24 24">${DRAWING[name]}</svg></span><h3>${title}</h3><p>${text}</p></li>`;
 }
 
 function slideOf(shared: Shared, item: HTMLElement, words: (target: Element) => Element[]): Slide {
   const strokes = [...item.querySelectorAll<SVGElement>('.quiet-icon svg *')];
+
   strokes.forEach((node) => node.setAttribute('pathLength', '1'));
   const part: Part = (name) => [...item.querySelectorAll(`[data-part="${name}"]`)];
   const loop = MOVES[item.dataset.rule ?? ''](part, shared.gsap.timeline({ paused: true }));
+
   return {
     li: item,
     tile: one(item, '.quiet-icon'),
@@ -161,7 +156,6 @@ function slideOf(shared: Shared, item: HTMLElement, words: (target: Element) => 
   };
 }
 
-// Builds the index under the body and returns the carousel. On phones there is no index: an empty one.
 export function buildIndex(
   shared: Shared,
   body: HTMLElement,
@@ -169,6 +163,7 @@ export function buildIndex(
   words: (target: Element) => Element[],
 ): Carousel {
   const index = body.appendChild(document.createElement('div'));
+
   index.className = 'quiet-index';
   index.setAttribute('aria-hidden', 'true');
   index.innerHTML = `<div class="quiet-index-view"><ol>${rules.map(itemHtml).join('')}</ol><div class="quiet-index-bars">${rules.map(() => '<i></i>').join('')}</div></div>`;
@@ -176,10 +171,10 @@ export function buildIndex(
   const slides = [...index.querySelectorAll<HTMLElement>('li')].map((item) =>
     slideOf(shared, item, words),
   );
+
   return { index, slides, bars, opened: -1 };
 }
 
-// Out of the way: the outgoing one turns out, and the words rise away, the way the page is moving.
 function outgoing(shared: Shared, last: Slide, way: number): void {
   last.tl?.kill();
   last.loop.pause();
@@ -194,10 +189,9 @@ function outgoing(shared: Shared, last: Slide, way: number): void {
     .set(last.li, { visibility: 'hidden' });
 }
 
-// In: the tile turns in and its drawing is drawn, the heading rises word by word, the sentence follows,
-// the figure is marked, and then it starts to move.
 function incoming(shared: Shared, next: Slide, way: number, delay: number): void {
   const { gsap, ease } = shared;
+
   next.tl?.kill();
   next.tl = gsap
     .timeline({ delay, defaults: { overwrite: true } })
@@ -242,32 +236,33 @@ function incoming(shared: Shared, next: Slide, way: number, delay: number): void
     .call(() => next.loop.restart(), [], SLIDE.loopIn);
 }
 
-// Shows commitment `now`, and takes the one before it out, unless it is already the one shown.
 export function openSlide(shared: Shared, carousel: Carousel, now: number): void {
   if (!carousel.slides.length || now === carousel.opened) {
     return;
   }
+
   const way = now > carousel.opened ? 1 : -1;
   const last = carousel.slides[carousel.opened];
   const next = carousel.slides[now];
+
   carousel.bars.forEach((bar, index) => {
     bar.classList.toggle('is-active', index === now);
     bar.classList.toggle('is-done', index < now);
   });
   carousel.opened = now;
+
   if (last) {
     outgoing(shared, last, way);
   }
+
   incoming(shared, next, way, last ? SLIDE.after : 0);
 }
 
-// The first commitment is there before its turn: never an empty index.
 export function openFirst(shared: Shared, carousel: Carousel): void {
   openSlide(shared, carousel, 0);
   carousel.slides[0]?.tl?.progress(1);
 }
 
-// Takes the index back out of the page, and stops its loops.
 export function disposeIndex(carousel: Carousel): void {
   carousel.slides.forEach((slide) => {
     slide.tl?.kill();

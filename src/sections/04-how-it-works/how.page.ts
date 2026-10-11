@@ -4,7 +4,6 @@ import type { gsap } from '../../motion/gsap';
 import type { Shared } from '../../motion/types';
 import { PALE, REVEAL } from './how.tuning';
 
-// What every station shares: the nodes they animate, the text helpers and the page's thread colour.
 export interface Page {
   root: HTMLElement;
   shared: Shared;
@@ -26,19 +25,18 @@ export interface Page {
 
 type SplitVars = Parameters<typeof SplitText.create>[1];
 
-const FIELD_SPEED = 0.7; // the labels decode at this speed
-const HEAD_LAG = 0.05; // a heading's words start this long after its number pops in
-const REF_FIELD = 2; // the label's reference field is letters and digits, and decodes as them
+const FIELD_SPEED = 0.7;
+const HEAD_LAG = 0.05;
+const REF_FIELD = 2;
 const SCRAMBLE = { words: 'lowerCase', ref: '0123456789ORD-' } as const;
 
-// Which characters a label's field decodes through: the reference is letters and digits.
 export const scrambleFor = (index: number): string =>
   index === REF_FIELD ? SCRAMBLE.ref : SCRAMBLE.words;
 
-// A station's heading: the number pops in, the words rise into place.
 export function headingOf(page: Page, panel: string): { badge: HTMLElement; words: Element[] } {
   const node = one(page.root, `[data-panel="${panel}"]`);
   const nodes = [...node.querySelectorAll<HTMLElement>('.how-panel-head h3, .how-panel-head p')];
+
   return {
     badge: one(node, '.how-panel-head h3 b'),
     words: page.split(nodes, { type: 'words', mask: 'words' }).words,
@@ -55,19 +53,16 @@ export function head(
     .from(heading.words, { yPercent: 110, stagger: 0.012, duration: 0.4 }, beat + HEAD_LAG);
 }
 
-// The text arrives as it comes into view, word by word; scrolling back takes it away again.
 const when = (trigger: Element, start: string) => ({
   trigger,
   start,
   toggleActions: 'play none none reverse',
 });
 
-// A station goes grey again, when the scroll leaves it.
 export function off(timeline: gsap.core.Timeline, station: HTMLElement, beat: number): void {
   timeline.to(station, { color: PALE, '--on': 0, duration: 0.3 }, beat);
 }
 
-// The label's own fields, scrambled into place one after another.
 export function decodeFields(
   timeline: gsap.core.Timeline,
   page: Page,
@@ -76,6 +71,7 @@ export function decodeFields(
 ): void {
   fields.forEach((field, index) => {
     const chars = scrambleFor(index);
+
     timeline.to(
       field,
       {
@@ -88,11 +84,11 @@ export function decodeFields(
   });
 }
 
-// The chapter, the eyebrow, the title and the principle arrive as the section comes in.
 export function revealText(page: Page): void {
   const { gsap, ease } = page.shared;
   const { root, chapterText } = page;
   const eyebrow = page.split(one(root, '.how .eyebrow'), { type: 'chars' }).chars;
+
   gsap.from(eyebrow, {
     autoAlpha: 0,
     y: 6,
@@ -110,6 +106,7 @@ export function revealText(page: Page): void {
     },
   );
   const title = page.split(one(root, '.how-title'), { type: 'words', mask: 'words' }).words;
+
   gsap.from(title, {
     yPercent: 115,
     rotation: 4,
@@ -120,6 +117,7 @@ export function revealText(page: Page): void {
     scrollTrigger: when(root, REVEAL.title),
   });
   const principle = page.split(one(root, '.how-principle'), { type: 'words', mask: 'words' }).words;
+
   gsap.from(principle, {
     yPercent: 100,
     stagger: 0.015,

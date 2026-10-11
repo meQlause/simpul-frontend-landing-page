@@ -13,9 +13,6 @@ import {
   STACKED,
 } from './how.tuning';
 
-// Phones: no pin and no camera. Each station plays as it scrolls through the screen, top to bottom.
-
-// The phone's hold and arrival, played as the screen goes by.
 function stackedArrive(page: Page, timeline: gsap.core.Timeline): void {
   const { gsap } = page.shared;
   const { root, primary, tap, notice } = page;
@@ -23,6 +20,7 @@ function stackedArrive(page: Page, timeline: gsap.core.Timeline): void {
   const held = { s: 0 };
   const ring = one(root, '.how-hold-ring');
   const note = page.split(one(root, '.how-hold-note'), { type: 'words', mask: 'words' }).words;
+
   gsap.set(ring, { attr: { pathLength: 1 }, strokeDasharray: 1, strokeDashoffset: 1 });
   count.textContent = '0';
   timeline
@@ -65,7 +63,6 @@ function stackedArrive(page: Page, timeline: gsap.core.Timeline): void {
     );
 }
 
-// Each rule lights in turn, and the one that matches stays lit.
 function stackedRules(page: Page, decide: gsap.core.Timeline): void {
   all<HTMLElement>(page.root, '.how-rules li').forEach((rule, index) => {
     decide.to(
@@ -73,6 +70,7 @@ function stackedRules(page: Page, decide: gsap.core.Timeline): void {
       { borderColor: COLOUR.ruleLit, duration: 0.1 },
       STACKED.rules + index * STACKED.rulesStep,
     );
+
     if (rule !== page.match) {
       decide.to(
         rule,
@@ -84,10 +82,10 @@ function stackedRules(page: Page, decide: gsap.core.Timeline): void {
   decide.to(page.match, MATCH_STYLE, STACKED.match);
 }
 
-// The label's fields decode one after another as the understand station plays.
 function stackedFields(page: Page, understand: gsap.core.Timeline): void {
   page.fields.forEach((field, index) => {
     const chars = scrambleFor(index);
+
     understand.to(
       field,
       {
@@ -100,7 +98,6 @@ function stackedFields(page: Page, understand: gsap.core.Timeline): void {
   });
 }
 
-// Phones: each station plays on its own scroll range.
 export function stacked(page: Page): () => void {
   const { shared, root } = page;
   const { gsap, ScrollTrigger, ease } = shared;
@@ -109,7 +106,7 @@ export function stacked(page: Page): () => void {
       defaults: { ease: ease.out, duration: 0.4 },
       scrollTrigger: { trigger: one(root, `[data-panel="${panel}"]`), ...run },
     });
-  // Section 3's order is taken in here: this chat is where it becomes the message.
+
   ScrollTrigger.create({
     trigger: one(root, '[data-panel="message"]'),
     start: 'top 75%',
@@ -124,6 +121,7 @@ export function stacked(page: Page): () => void {
     { autoAlpha: 0, y: 20 },
     STACKED.label,
   );
+
   stackedFields(page, understand);
   stackedRules(page, head(play('decide'), headingOf(page, 'decide'), 0));
   head(play('route'), headingOf(page, 'route'), 0)
@@ -132,5 +130,6 @@ export function stacked(page: Page): () => void {
     .to(one(root, '.how-role-back'), { opacity: 0.55, duration: 0.25 }, STACK_ROUTE.dim)
     .from(one(root, '.how-backup'), { autoAlpha: 0, x: 24 }, STACK_ROUTE.backup);
   stackedArrive(page, play('arrive', ARRIVE_RUN));
+
   return () => page.takeOrder(false);
 }

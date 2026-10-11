@@ -21,12 +21,14 @@ describe('the page', () => {
 
   it('renders the nine sections, in order, on the server', () => {
     const ids = [...html.matchAll(/data-section="([\w-]+)"/g)].map((match) => match[1]);
+
     expect(ids).toEqual(ORDER);
   });
 
   it('gives every section exactly one in-anchor and one out-anchor', () => {
     for (const id of ORDER) {
       const section = sectionOf(html, id);
+
       expect(section.match(/data-thread-in=/g), id).toHaveLength(1);
       expect(section.match(/data-thread-out=/g), id).toHaveLength(1);
     }
@@ -34,6 +36,7 @@ describe('the page', () => {
 
   it('has no duplicate ids anywhere in the page', () => {
     const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+
     expect(new Set(ids).size).toBe(ids.length);
   });
 

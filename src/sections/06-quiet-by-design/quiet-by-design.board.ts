@@ -2,7 +2,6 @@ import { all, one, SVG_NS } from '../../motion/dom';
 import type { Board, Feel, Note } from './quiet-by-design.scene';
 import { FEEL, HUE, LIMIT, RULE } from './quiet-by-design.tuning';
 
-// The notifications people get today, typed the way people type them: initials, sender, text, badge.
 const NOISE = [
   ['GG', 'Grup Gudang', 'udah dikirim belum?', '3'],
   ['ST', 'Sales Team', '@all tolong dicek ya', '12'],
@@ -23,11 +22,9 @@ const CHIPS = [
   ['BU', 'Budi'],
 ];
 
-// The moon and the sun of the night's sky, drawn once.
 const SKY =
   '<svg viewBox="0 0 24 24"><path class="moon" d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z"/><g class="sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg><b>21:00</b>';
 
-// Adds a node at the end of the stage. Each one is a child of the panel, in the order the vanilla page adds them.
 function addTo(
   panel: HTMLElement,
   className: string,
@@ -35,8 +32,10 @@ function addTo(
   tag: 'div' | 'p' = 'div',
 ): HTMLElement {
   const node = document.createElement(tag);
+
   node.className = className;
   node.innerHTML = html;
+
   return panel.appendChild(node);
 }
 
@@ -48,7 +47,9 @@ function buildNotes(panel: HTMLElement, count: number): Note[] {
       'quiet-note',
       `<i>${initials}</i><b>${from}</b><span>${text}</span><em>${badge}</em><span class="quiet-note-sum"></span><span class="quiet-note-tick">✓</span>`,
     );
+
     node.style.setProperty('--hue', String((index * HUE.step) % HUE.turn));
+
     return {
       el: node,
       words: [...node.querySelectorAll<HTMLElement>('b, span:not([class])')],
@@ -58,8 +59,6 @@ function buildNotes(panel: HTMLElement, count: number): Note[] {
   });
 }
 
-// The stage's own furniture, in the order the vanilla page adds it: the hold, the correction, the counter,
-// the summary, the night, the queue, the two people, the question, and the tally.
 function buildExtras(panel: HTMLElement, take: number[]) {
   const hold = addTo(
     panel,
@@ -80,10 +79,10 @@ function buildExtras(panel: HTMLElement, take: number[]) {
   );
   const ask = addTo(panel, 'quiet-ask', '?', 'p');
   const tally = addTo(panel, 'quiet-tally', '<b></b><small></small>', 'p');
+
   return { hold, fix, counter, summary, night, queue, chips, ask, tally };
 }
 
-// The board: the stage's cards and furniture, and the thread's own stretch of the page, drawn into it.
 export function buildBoard(root: HTMLElement, take: number[]): Board {
   const body = one(root, '.quiet-body');
   const stage = one(root, '.quiet-stage');
@@ -95,10 +94,13 @@ export function buildBoard(root: HTMLElement, take: number[]): Board {
   );
   const extras = buildExtras(panel, take);
   const svg = root.insertBefore(document.createElementNS(SVG_NS, 'svg'), root.firstChild);
+
   svg.setAttribute('class', 'quiet-thread');
   svg.setAttribute('aria-hidden', 'true');
   const thread = svg.appendChild(document.createElementNS(SVG_NS, 'path'));
-  survivor.dataset.handoffObject = ''; // what section 7 picks up
+
+  survivor.dataset.handoffObject = '';
+
   return {
     root,
     body,
@@ -137,7 +139,6 @@ export function buildBoard(root: HTMLElement, take: number[]): Board {
   };
 }
 
-// The board trembles in proportion to what is on it, and the tremble eases to nothing as cards leave.
 export function shake(panel: HTMLElement, feel: Feel, time: number): void {
   feel.felt += (feel.noise - feel.felt) * FEEL.ease;
   panel.style.setProperty('--noise', feel.felt.toFixed(FEEL.digits));

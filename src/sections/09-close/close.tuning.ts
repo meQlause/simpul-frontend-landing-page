@@ -1,7 +1,3 @@
-// Every number section 9's motion uses, named by what it means. The values are the vanilla ones from
-// ../landing/src/sections/09-close/index.js. A share is of the clock (0 to 1) unless it says otherwise.
-
-// What the visitor has met on the way down, in the order it comes home: each piece rides a strand in.
 export const PIECES: readonly string[] = [
   'Order · Mrs. Sri',
   '<i>1</i>Understand',
@@ -13,19 +9,23 @@ export const PIECES: readonly string[] = [
   '<i>H</i>Mr. Hendra',
   'ORD-0091 · Mrs. Sri',
 ];
-// The centre of the mark, in its own 1254 box: the point the links are tightened about.
+
 export const CENTRE = '627 627';
-// Each strand's own head and tail: the head starts at HEAD.from, a step later per strand, and runs to HEAD.to.
+
 export const HEAD = { from: 0.06, step: 0.025, to: 0.5 };
+
 export const TAIL = { from: 0.46, step: 0.02, to: 0.76 };
-// A piece shows as its head leaves the start, hides before it reaches the knot, and shrinks as it arrives.
+
 export const SHOW = { from: 0.02, to: 0.1 };
+
 export const HIDE = { from: 0.84, to: 0.98 };
+
 export const SHRINK = { from: 0.8, by: 0.55 };
-// The strands' bend, and the two handles of their curve, in share of the way to the knot.
+
 export const BEND = 70;
+
 export const CURVE = { reachX: 0.45, reachY: 0.1, pullX: 0.25, pullY: 0.5 };
-// Where the strands come from: the top row above the knot (desktop) or the rail's two edges (phone).
+
 export const STARTS = {
   margin: 30,
   topFrom: -0.55,
@@ -37,7 +37,7 @@ export const STARTS = {
   phoneSpan: 0.96,
   topRow: 4,
 };
-// The two links: they draw, then move apart, then lock into the logo around the form. Then nothing moves.
+
 export const LINKS = {
   drawFrom: 0.48,
   drawTo: 0.8,
@@ -46,10 +46,9 @@ export const LINKS = {
   filledFrom: 0.9,
   shift: { x: 150, y: 100, turn: 12 },
 };
-// The tightening of the knot on press: how far it closes (1 is open) and how fast.
+
 export const PULL = { press: 0.93, pressFor: 0.16, rest: 0.972, restFor: 1 };
-// The red scribble over each "is not" line: its height in its own box, and its wobble. Each point is a share
-// of the line's width (x) and a height (y) in the box, in the order the scribble is traced; `cmd` starts a curve.
+
 export const SCRIBBLE = {
   height: 20,
   inset: 12,
@@ -67,15 +66,15 @@ export const SCRIBBLE = {
     { share: 0.04, y: 10 },
   ],
 };
-// The footer's sign-off: when each part rises, as a share of the footer's own clock.
+
 export const FOOT = { signAt: 0.05, lineAt: 0.3, streamAt: 0.75, navAt: 0.95 };
-// The stand-in form waits this long, and fails when the address holds the word in `failWord`.
+
 export const STAND_IN = { waitMs: 600, failWord: 'fail' };
-// A line or a piece is shown only once it has any length or opacity, so no round cap shows as a dot.
+
 export const VISIBLE = { line: 0.002, piece: 0.01 };
-// Each "is not" line rises, is scribbled after a beat, and fades to step back: one stagger per line.
+
 export const NOT = { every: 0.24, rise: 0.04, scribbleAt: 0.4, stepBackAt: 0.85, fade: 0.38 };
-// The highlighter sweeps each kind of company in turn.
+
 export const SWEEP = { at: 0.55, every: 0.28 };
-// The footer's wave: the letters rise and fall, and the stream runs one wavelength (30) every 1.4 s.
+
 export const WAVE = { lift: 4, drop: -5, each: 0.11, stream: 30 };

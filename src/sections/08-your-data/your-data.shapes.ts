@@ -1,11 +1,7 @@
-// Section 8's repeated drawing, as data: one grid of 36 cells (the same grid on all five layers and on
-// each of Simpul's three things), and the five layers of the customer's data, bottom first as the
-// drawing lists them. Generated from ../landing/src/sections/08-your-data/markup.html.
-
 export interface GridCell {
   x: number;
   y: number;
-  far: number; // how far from the back corner the cell fills: 0 first, 1 last
+  far: number;
 }
 
 export const GRID: readonly GridCell[] = [
@@ -47,8 +43,8 @@ export const GRID: readonly GridCell[] = [
   { x: 48.5, y: 48.5, far: 1.0 },
 ];
 
-// The fill of each cell, in GRID order: a, b, c are the three colours and e is the empty cell.
 export const CELL_KIND = { a: 'a', b: 'b', c: 'c', e: 'empty' } as const;
+
 export type CellCode = keyof typeof CELL_KIND;
 
 export interface LayerDrawing {
@@ -56,7 +52,7 @@ export interface LayerDrawing {
   edge: string;
   plate: string;
   transform: string;
-  fills: string; // one CellCode per GRID cell
+  fills: string;
 }
 
 export const LAYERS: readonly LayerDrawing[] = [

@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-// Section 9's own browser checks: the form works from the keyboard alone, with every outcome shown in place; it is
-// present with JavaScript off; the hero's "Join the pilot" lands on it; and the page loads with no errors.
 const LOAD_MS = 15_000;
 const SECTION = '[data-section="09-close"]';
 const STATUS = `${SECTION} [data-status]`;
@@ -16,6 +14,7 @@ test('section 9 loads with no page errors, and gets its motion once the visitor 
   page,
 }) => {
   const errors: string[] = [];
+
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
     if (message.type() === 'error') {
@@ -56,6 +55,7 @@ test('with JavaScript off, the form, its label and the button are all there', as
 }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
+
   await page.goto('/#join');
   await expect(page.locator(`${SECTION} form.join`)).toBeVisible();
   await expect(page.locator(`${SECTION} label[for="join-email"]`)).toHaveText('Work email');

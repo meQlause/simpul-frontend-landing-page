@@ -1,6 +1,3 @@
-// Boundary ownership belongs to the page. A section only moves its own copy of the carried object;
-// the page tells it where the previous section left that object, and hides the previous copy once
-// this section has taken it.
 interface Arrival {
   x: number;
   y: number;
@@ -14,13 +11,16 @@ export interface Handoff {
 
 export function createHandoff(roots: readonly HTMLElement[]): Handoff {
   const previous = (root: HTMLElement): HTMLElement | undefined => roots[roots.indexOf(root) - 1];
+
   return {
     incoming(root) {
       const before = previous(root);
       const object = before?.querySelector<HTMLElement>('[data-handoff-object]');
+
       if (!before || !object?.hasAttribute('data-exit-x')) {
         return null;
       }
+
       return {
         x:
           before.getBoundingClientRect().left -
