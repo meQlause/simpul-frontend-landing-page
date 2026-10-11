@@ -6,6 +6,7 @@
   --window: clamp(460px, 72vh, 800px);
   --inset: 12px;
   position: relative;
+  z-index: 2;
   min-height: 100svh;
   padding: clamp(42px, 6vh, 76px) clamp(22px, 3.6vw, 72px) clamp(20px, 3vh, 40px);
   background: var(--mint);

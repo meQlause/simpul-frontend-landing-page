@@ -251,6 +251,11 @@ input {
 [data-handed-off] [data-handoff-object] {
   visibility: hidden !important;
 }
+/* A giver sits above the next section until it hands off, then the receiver wins by DOM order,
+   so the object is whole on either side of the seam. */
+.section[data-handed-off] {
+  z-index: 1;
+}
 
 /* The film, opened from any [data-film] button. */
 .film {

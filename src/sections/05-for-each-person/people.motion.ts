@@ -5,8 +5,10 @@ import { all, one } from '../../motion/dom';
 import type { gsap } from '../../motion/gsap';
 import type { SectionMotion, Shared } from '../../motion/types';
 import { buildCard, isStraight, renderCard, sizeCard, type Card } from './people.card';
+import { SEAM } from '../../motion/thread';
 import {
   buildThreads,
+  drawStroke,
   measureCards,
   measureThreads,
   renderEntry,
@@ -28,6 +30,7 @@ interface Scene {
   threads: Threads;
   curves: Curves;
   entry: { progress: number };
+  seam: { progress: number };
   together: { progress: number };
   join: gsap.core.Tween | null;
   joined: boolean;
@@ -117,17 +120,37 @@ function renderEntryFrame(scene: Scene, progress: number): void {
 }
 
 function renderJoinFrame(scene: Scene): void {
-  renderJoin(scene.threads, scene.phone, scene.together.progress, scene.curves);
+  renderJoin(scene.threads, scene.together.progress, scene.curves);
 }
 
 function paint(scene: Scene): void {
+  const entry = scene.shared.handoff.incoming(scene.root)?.x;
+
   scene.cards.forEach(sizeCard);
   measureCards(scene.root, scene.cards);
-  measureThreads(scene.threads, scene.root, scene.cards, scene.phone);
+  measureThreads(scene.threads, scene.cards, { root: scene.root, phone: scene.phone, entry });
   renderEntryFrame(scene, scene.entry.progress);
   scene.cards.forEach((card) => renderCard(card));
   syncJoin(scene);
   renderJoinFrame(scene);
+  drawStroke(scene.threads.trunk, scene.seam.progress);
+}
+
+function reachSeam(scene: Scene): void {
+  const { root, threads } = scene;
+
+  scene.shared.gsap.to(scene.seam, {
+    progress: 1,
+    ease: 'none',
+    onUpdate: () => drawStroke(threads.trunk, scene.seam.progress),
+    scrollTrigger: {
+      trigger: root,
+      start: () => `top+=${threads.trunkTop} ${SEAM.line}`,
+      end: `bottom ${SEAM.line}`,
+      scrub: SEAM.scrub,
+      invalidateOnRefresh: true,
+    },
+  });
 }
 
 function autoUntie(scene: Scene, card: Card, lit: boolean): void {
@@ -326,6 +349,7 @@ function buildScene(
       back: shared.gsap.parseEase('back.out(3)'),
     },
     entry: { progress: 0 },
+    seam: { progress: 0 },
     together: { progress: 0 },
     join: null,
     joined: false,
@@ -372,6 +396,7 @@ function mountScene(root: HTMLElement, shared: Shared, splits: SplitText[]): Sce
 
 function wire(scene: Scene, signal: AbortSignal): Draggable[] {
   watchScroll(scene);
+  reachSeam(scene);
   watchPointer(scene, signal);
 
   return scene.cards.map((card) => dragCard(scene, card));

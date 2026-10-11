@@ -24,7 +24,7 @@ export const SHRINK = { from: 0.8, by: 0.55 };
 
 export const BEND = 70;
 
-export const CURVE = { reachX: 0.45, reachY: 0.1, pullX: 0.25, pullY: 0.5 };
+export const CURVE = { reachX: 0.45, reachY: 0.1, pullX: 0.25, pullY: 0.5, seamDrop: 0.4 };
 
 export const STARTS = {
   margin: 30,

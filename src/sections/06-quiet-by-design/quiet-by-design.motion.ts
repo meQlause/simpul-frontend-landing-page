@@ -2,6 +2,7 @@ import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { SplitText } from 'gsap/SplitText';
 import { one } from '../../motion/dom';
+import { SEAM } from '../../motion/thread';
 import type { SectionMotion, Shared } from '../../motion/types';
 import { settle, type Plan } from './heap';
 import { simulate, type Matter } from './heap.physics';
@@ -277,12 +278,39 @@ function cleanupOf(scene: Scene, dispose: () => void): () => void {
   };
 }
 
+function drawInto(scene: Scene, share: number): void {
+  const { length, total } = scene.layout.into;
+
+  scene.board.thread.style.strokeDasharray = share < 1 ? `${length * share} ${total}` : '';
+}
+
+function growFromSeam(scene: Scene, root: HTMLElement): () => number {
+  const seam = { share: 0 };
+
+  scene.shared.gsap.to(seam, {
+    share: 1,
+    ease: 'none',
+    onUpdate: () => drawInto(scene, seam.share),
+    scrollTrigger: {
+      trigger: root,
+      start: `top ${SEAM.line}`,
+      end: () => `top+=${scene.layout.into.top} ${SEAM.line}`,
+      scrub: SEAM.scrub,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  return () => seam.share;
+}
+
 function playScene(scene: Scene, root: HTMLElement): () => void {
   const { ScrollTrigger, gsap } = scene.shared;
   let alive = true;
+  const seamShare = growFromSeam(scene, root);
   const onRefresh = () => {
     Object.assign(scene, measured(scene.board, scene.phone, scene.take));
     renderFrame(scene);
+    drawInto(scene, seamShare());
   };
 
   const restless = (time: number) => {
@@ -300,6 +328,7 @@ function playScene(scene: Scene, root: HTMLElement): () => void {
   });
   ScrollTrigger.addEventListener('refresh', onRefresh);
   renderFrame(scene);
+  drawInto(scene, seamShare());
   const near = arriveNear(root, scene.phone, () => {
     if (alive) {
       onRefresh();

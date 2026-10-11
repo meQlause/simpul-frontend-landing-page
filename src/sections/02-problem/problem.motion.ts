@@ -5,6 +5,7 @@ import { createCarried } from '../../motion/carried';
 import { all, one, SVG_NS } from '../../motion/dom';
 import type { gsap } from '../../motion/gsap';
 import { seeded } from '../../motion/random';
+import { stitch } from '../../motion/thread';
 import type { SectionMotion, Shared } from '../../motion/types';
 import {
   carry,
@@ -254,15 +255,9 @@ function drawTail(scene: Scene, live: Live): void {
 }
 
 function drawSlack(scene: Scene, live: Live, seconds: number, pose: Pose): void {
-  const [exitLeft, exitTop] = live.geo.exit;
-  const [orderLeft, orderTop] = pose;
-  const edge = orderLeft + live.geo.order[0] / 2 - LAYOUT.edge;
-  const curve = LAYOUT.slackCurve;
+  const hang: [number, number] = [pose[0], pose[1] + live.geo.order[1] / 2];
 
-  scene.slackEnd.setAttribute(
-    'd',
-    `M${edge},${orderTop} C${edge + curve.reach},${orderTop + curve.sag} ${exitLeft + curve.pull},${exitTop} ${exitLeft},${exitTop}`,
-  );
+  scene.slackEnd.setAttribute('d', `M${hang.join(',')} ${stitch(hang, live.geo.exit)}`);
   const drawn = Math.min(Math.max((seconds - LAYOUT.slackDelay) / LAYOUT.slackLength, 0), 1);
 
   scene.slackEnd.style.strokeDashoffset = String(1 - drawn);

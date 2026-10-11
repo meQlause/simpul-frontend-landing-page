@@ -18,6 +18,7 @@ export interface Route {
   solo: boolean;
   start: Start;
   out: Spot;
+  seam: number;
   lane: number;
   dock: Spot;
 }

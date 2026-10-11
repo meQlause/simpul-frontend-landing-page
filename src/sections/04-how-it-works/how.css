@@ -804,6 +804,26 @@
   }
 }
 
+/* Phones: the thread runs the right-hand rail, sage until the order is routed, then green. */
+.how-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.how-rail path {
+  fill: none;
+  stroke: var(--thread-sage);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.how-rail .how-rail-green {
+  stroke: var(--green);
+  stroke-width: 2.4;
+}
+
 /* The traveller: the one message that makes the journey. Created by index.js. */
 .how .how-order {
   left: 0;

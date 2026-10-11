@@ -94,10 +94,8 @@ export const LAYOUT = {
   tiltSeed: 3,
   tail: 14,
   tailStep: 0.025,
-  slackCurve: { reach: 80, sag: 6, pull: 60 },
   slackDelay: 1.1,
   slackLength: 0.8,
-  edge: 6,
 };
 
 export const INTRO = { start: 'top 92%', end: 'top top', scrub: 0.6 };

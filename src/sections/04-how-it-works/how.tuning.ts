@@ -27,7 +27,7 @@ export const ROUTE = { minReach: 48, bend: 0.9, lift: 0.4 };
 
 export const ENTRY = { bend: 0.7, reach: 190 };
 
-export const EXIT = { lift: 60, drop: 40 };
+export const STACK_RAIL = { inset: 12, reach: 120 };
 
 export const EVIDENCE = { tieAt: 2, tieSpan: 0.4, leaves: 2.4, offset: 7 };
 

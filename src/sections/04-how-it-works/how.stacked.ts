@@ -1,5 +1,6 @@
-import { all, one } from '../../motion/dom';
+import { all, one, SVG_NS } from '../../motion/dom';
 import type { gsap } from '../../motion/gsap';
+import { SEAM, stitch } from '../../motion/thread';
 import { MATCH_STYLE } from './how.beats';
 import { head, headingOf, scrambleFor, type Page } from './how.page';
 import {
@@ -8,6 +9,7 @@ import {
   HALF,
   HOLD_SECONDS,
   STACK_ARRIVE,
+  STACK_RAIL,
   STACK_ROUTE,
   STACK_RUN,
   STACKED,
@@ -98,6 +100,73 @@ function stackedFields(page: Page, understand: gsap.core.Timeline): void {
   });
 }
 
+function railOf(page: Page): { svg: SVGSVGElement; sage: SVGPathElement; green: SVGPathElement } {
+  const svg = page.root.insertBefore(document.createElementNS(SVG_NS, 'svg'), page.root.firstChild);
+  const line = (className: string) => {
+    const node = svg.appendChild(document.createElementNS(SVG_NS, 'path'));
+
+    node.setAttribute('class', className);
+    node.setAttribute('pathLength', '1');
+    node.style.strokeDasharray = '0 2';
+
+    return node;
+  };
+
+  svg.setAttribute('class', 'how-rail');
+  svg.setAttribute('aria-hidden', 'true');
+
+  return { svg, sage: line(''), green: line('how-rail-green') };
+}
+
+function railThread(page: Page): () => void {
+  const { root, shared } = page;
+  const { gsap, ScrollTrigger } = shared;
+  const { svg, sage, green } = railOf(page);
+  const turn = { at: 0 };
+  const measure = () => {
+    const width = root.offsetWidth;
+    const height = root.offsetHeight;
+    const edge = width - STACK_RAIL.inset;
+    const arrive = one(root, '[data-panel="arrive"]').getBoundingClientRect();
+
+    turn.at = arrive.top - root.getBoundingClientRect().top;
+    svg.setAttribute('width', String(width));
+    svg.setAttribute('height', String(height));
+    sage.setAttribute(
+      'd',
+      `M${width / 2},0 ${stitch([width / 2, 0], [edge, STACK_RAIL.reach])} L${edge},${height}`,
+    );
+    green.setAttribute('d', `M${edge},${turn.at} L${edge},${height}`);
+    Object.assign(svg.dataset, { handoffObject: '', exitX: edge, exitY: height, exitAngle: 0 });
+  };
+
+  const grow = (line: SVGPathElement, from: () => string) =>
+    gsap.fromTo(
+      line,
+      { strokeDasharray: '0 2' },
+      {
+        strokeDasharray: '1 2',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: root,
+          start: from,
+          end: 'bottom bottom',
+          scrub: SEAM.scrub,
+        },
+      },
+    );
+
+  measure();
+  grow(sage, () => `top ${SEAM.line}`);
+  grow(green, () => `top+=${turn.at} ${SEAM.line}`);
+  ScrollTrigger.addEventListener('refresh', measure);
+
+  return () => {
+    ScrollTrigger.removeEventListener('refresh', measure);
+    svg.remove();
+  };
+}
+
 export function stacked(page: Page): () => void {
   const { shared, root } = page;
   const { gsap, ScrollTrigger, ease } = shared;
@@ -130,6 +199,10 @@ export function stacked(page: Page): () => void {
     .to(one(root, '.how-role-back'), { opacity: 0.55, duration: 0.25 }, STACK_ROUTE.dim)
     .from(one(root, '.how-backup'), { autoAlpha: 0, x: 24 }, STACK_ROUTE.backup);
   stackedArrive(page, play('arrive', ARRIVE_RUN));
+  const stopRail = railThread(page);
 
-  return () => page.takeOrder(false);
+  return () => {
+    stopRail();
+    page.takeOrder(false);
+  };
 }

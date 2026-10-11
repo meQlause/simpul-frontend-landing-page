@@ -131,7 +131,7 @@ export const RIDE = { lift: 12, bendFirst: 0.62, bendSecond: 0.38 };
 
 export const INTO = { bend: 0.55, handle: 0.45 };
 
-export const PHONE = { inset: 12, top: 12, bend: 30, rail: 52, hop: 46, handle: 14, reach: 30 };
+export const PHONE = { inset: 12, drop: 120, hop: 46, handle: 14, reach: 30 };
 
 export const KNOT = { storm: 0.15, settled: 0.3 };
 

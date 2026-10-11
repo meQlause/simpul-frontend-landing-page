@@ -207,6 +207,6 @@ export function placeRelease(
   release.setAttribute('viewBox', `0 0 ${origin.width} ${origin.height}`);
   releasePath.setAttribute(
     'd',
-    `M${startX} ${startY} C${startX - RELEASE.bend} ${startY + RELEASE.drop}, ${endX + RELEASE.reach} ${endY - RELEASE.reach}, ${endX} ${endY}`,
+    `M${startX} ${startY} C${startX - RELEASE.bend} ${startY + RELEASE.drop}, ${endX} ${endY - RELEASE.reach}, ${endX} ${endY}`,
   );
 }

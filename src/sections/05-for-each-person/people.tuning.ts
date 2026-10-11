@@ -140,9 +140,7 @@ export const CARD_SIZE = { fit: 24, base: 200 };
 
 export const RAIL = {
   inset: 12,
-  dropA: 28,
-  dropB: 14,
-  dropC: 48,
+  reach: 120,
   lift: 70,
   lowerA: 30,
   lowerB: 46,
@@ -161,8 +159,6 @@ export const JOIN = {
   beadAt: 0.45,
   beadSpan: 0.2,
 };
-
-export const TRUNK = { deskFrom: 0.5, deskSpan: 0.5, phoneFrom: 0, phoneSpan: 1 };
 
 export const AUTO = {
   inDuration: 1.4,

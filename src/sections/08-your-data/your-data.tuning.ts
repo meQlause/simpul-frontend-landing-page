@@ -10,7 +10,7 @@ export const CURVE_IN = { first: 0.58, second: 0.42 };
 
 export const CURVE_OUT = { first: 0.6, second: 0.4 };
 
-export const RAIL = { inset: 12, first: 30, second: 12, reach: 52, foot: 40 };
+export const RAIL = { inset: 12, reach: 120, foot: 40 };
 
 export const BIT = { size: 8, corner: 4, half: 4 };
 

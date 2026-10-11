@@ -1,5 +1,6 @@
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { one } from '../../motion/dom';
+import { stitch } from '../../motion/thread';
 import type { Route, Scene } from './turn.scene';
 import { restingLayer } from './turn.chat';
 import { DOCK, HALF, LEAN, LEVEL, OUTLINE, ROUTE, UPRIGHT } from './turn.tuning';
@@ -28,6 +29,7 @@ export function measureRoute(scene: Scene): void {
     solo: !start,
     start: start ?? { x: inPoint.left - box.left, y: inPoint.top - box.top, angle: 0 },
     out,
+    seam: inPoint.left - box.left + inPoint.width / 2,
     lane: scene.phone
       ? (layer.x + layer.w + box.width) / 2
       : (copy.left - box.left + copy.width + layer.x) / 2,
@@ -37,6 +39,12 @@ export function measureRoute(scene: Scene): void {
   Object.assign(order.dataset, { exitX: out.x, exitY: out.y, exitAngle: 0 });
 }
 
+function reachOf(route: Route, orderHeight: number): string {
+  const { start, dock, seam } = route;
+
+  return `M${dock.x},${dock.y} ${stitch([dock.x, dock.y], [seam, 0])} ${stitch([seam, 0], [start.x, start.y + orderHeight / 2])} L${start.x},${start.y}`;
+}
+
 function buildPaths(scene: Scene): void {
   const route: Route | null = scene.route;
 
@@ -44,13 +52,9 @@ function buildPaths(scene: Scene): void {
     return;
   }
 
-  const { width, height, start, dock, lane, out } = route;
-  const climb = Math.max(start.y + ROUTE.climbAbove, dock.y - ROUTE.climbLift);
+  const { width, height, dock, lane, out } = route;
 
-  scene.reach.setAttribute(
-    'd',
-    `M${dock.x},${dock.y} C${lane},${dock.y} ${lane},${dock.y - ROUTE.bend} ${lane},${dock.y - ROUTE.lift} L${lane},${climb} C${lane},${start.y - ROUTE.reachBelow} ${start.x + ROUTE.reachSide},${start.y - ROUTE.reachOver} ${start.x},${start.y - ROUTE.reachDip} L${start.x},${start.y}`,
-  );
+  scene.reach.setAttribute('d', reachOf(route, scene.order.offsetHeight));
   scene.onward.setAttribute(
     'd',
     `M${dock.x},${dock.y} C${lane},${dock.y} ${lane},${dock.y + ROUTE.onBend} ${lane},${dock.y + ROUTE.onLift} L${lane},${height - ROUTE.onFoot} C${lane},${height - ROUTE.onFootBend} ${out.x},${height - ROUTE.onFootIn} ${out.x},${out.y}`,

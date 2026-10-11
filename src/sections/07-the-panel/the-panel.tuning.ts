@@ -112,15 +112,7 @@ export const RING_PAD = { order: 4, strip: 8, item: 6 };
 
 export const LEAN = { centre: 0.5, x: 5, y: 3 };
 
-export const RAIL = {
-  inset: 12,
-  bow: 30,
-  turn: 12,
-  drop: 52,
-  foot: 70,
-  pull: 24,
-  base: 46,
-};
+export const RAIL = { inset: 12, reach: 120 };
 
 export const SHOT_STEP = 0.08;
 

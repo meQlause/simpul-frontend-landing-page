@@ -17,24 +17,25 @@ export interface Thread {
 
 type Point = readonly [number, number];
 
+export const SEAM = { line: '75%', scrub: 0.6 };
+
 function centreOf(element: Element, origin: DOMRect): Point {
   const box = element.getBoundingClientRect();
 
   return [box.left + box.width / 2 - origin.left, box.top + box.height / 2 - origin.top];
 }
 
+export function stitch([fromLeft, fromTop]: Point, [left, top]: Point): string {
+  const middle = (fromTop + top) / 2;
+
+  return `C${fromLeft},${middle} ${left},${middle} ${left},${top}`;
+}
+
 function route(points: readonly Point[]): string {
   return points
-    .map(([left, top], index) => {
-      if (index === 0) {
-        return `M${left},${top}`;
-      }
-
-      const [fromLeft, fromTop] = points[index - 1];
-      const middle = (fromTop + top) / 2;
-
-      return `C${fromLeft},${middle} ${left},${middle} ${left},${top}`;
-    })
+    .map((point, index) =>
+      index === 0 ? `M${point[0]},${point[1]}` : stitch(points[index - 1], point),
+    )
     .join('');
 }
 

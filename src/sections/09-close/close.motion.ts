@@ -69,6 +69,7 @@ interface Scene {
   phone: boolean;
   gsap: Shared['gsap'];
   ScrollTrigger: Shared['ScrollTrigger'];
+  handoff: Shared['handoff'];
   ease: Shared['ease'];
   inOut: (share: number) => number;
   press: Press;
@@ -304,7 +305,11 @@ interface Frame {
   width: number;
   height: number;
   box: Box;
+  seam: number;
 }
+
+const fromSeam = (frame: Frame, index: number): boolean =>
+  frame.phone ? index === 0 : index < STARTS.topRow;
 
 function startOf(frame: Frame, index: number): [number, number] {
   const { phone, width, height, box } = frame;
@@ -333,6 +338,20 @@ function startOf(frame: Frame, index: number): [number, number] {
   ];
 }
 
+function strandShape(frame: Frame, index: number): string {
+  const centreX = frame.box.x + frame.box.w / 2;
+  const centreY = frame.box.y + frame.box.h / 2;
+  const [startX, startY] = startOf(frame, index);
+  const bend = (index % 2 ? 1 : -1) * BEND;
+  const pull = `${centreX + (startX - centreX) * CURVE.pullX},${centreY + (startY - centreY) * CURVE.pullY - bend}`;
+
+  if (fromSeam(frame, index)) {
+    return `M${frame.seam},0 C${frame.seam},${centreY * CURVE.seamDrop} ${pull} ${centreX},${centreY}`;
+  }
+
+  return `M${startX},${startY} C${startX + (centreX - startX) * CURVE.reachX},${startY + (centreY - startY) * CURVE.reachY + bend} ${pull} ${centreX},${centreY}`;
+}
+
 function measure(scene: Scene) {
   const { root, svg, strands } = scene;
   const width = root.offsetWidth;
@@ -343,14 +362,11 @@ function measure(scene: Scene) {
   svg.setAttribute('width', String(width));
   svg.setAttribute('height', String(height));
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  const centreX = box.x + box.w / 2;
-  const centreY = box.y + box.h / 2;
-  const frame: Frame = { phone: scene.phone, width, height, box };
+  const seam = scene.handoff.incoming(root)?.x ?? width / 2;
+  const frame: Frame = { phone: scene.phone, width, height, box, seam };
 
   strands.forEach((strand, index) => {
-    const [startX, startY] = startOf(frame, index);
-    const bend = (index % 2 ? 1 : -1) * BEND;
-    const shape = `M${startX},${startY} C${startX + (centreX - startX) * CURVE.reachX},${startY + (centreY - startY) * CURVE.reachY + bend} ${centreX + (startX - centreX) * CURVE.pullX},${centreY + (startY - centreY) * CURVE.pullY - bend} ${centreX},${centreY}`;
+    const shape = strandShape(frame, index);
 
     strand.line.setAttribute('d', shape);
     strand.raw = MotionPathPlugin.getRawPath(shape) as number[][];
@@ -412,6 +428,7 @@ function buildScene(root: HTMLElement, shared: Shared, press: Press): Scene {
     phone: shared.conditions.phone,
     gsap: shared.gsap,
     ScrollTrigger: shared.ScrollTrigger,
+    handoff: shared.handoff,
     ease: shared.ease,
     inOut: shared.gsap.parseEase(POWER2_IN_OUT),
     press,

@@ -1,4 +1,5 @@
 import { one } from '../../motion/dom';
+import { stitch } from '../../motion/thread';
 import {
   addStrand,
   arrivalOf,
@@ -12,10 +13,12 @@ import {
 import { CARD, PHONE_FADE, RAIL } from './the-panel.tuning';
 import type { Point } from './the-panel.data';
 
-function railPath(width: number, height: number): string {
+function placeRail(rail: SVGPathElement, width: number, height: number): void {
   const edge = width - RAIL.inset;
+  const mid = width / 2;
 
-  return `M${width / 2},0 C${width / 2},${RAIL.bow} ${edge},${RAIL.turn} ${edge},${RAIL.drop} L${edge},${height - RAIL.foot} C${edge},${height - RAIL.pull} ${width / 2},${height - RAIL.base} ${width / 2},${height}`;
+  rail.setAttribute('d', `M${mid},0 ${stitch([mid, 0], [edge, RAIL.reach])} L${edge},${height}`);
+  Object.assign(rail.dataset, { handoffObject: '', exitX: edge, exitY: height, exitAngle: 0 });
 }
 
 export function stacked(panel: Panel): () => void {
@@ -35,7 +38,7 @@ export function stacked(panel: Panel): () => void {
     ends.from = arrivalOf(panel);
     ends.to = { x: box.x + box.w / 2, y: box.y + box.h * CARD.share };
     sizeSvg(svg, width, height);
-    rail.setAttribute('d', railPath(width, height));
+    placeRail(rail, width, height);
   };
 
   const render = () => {

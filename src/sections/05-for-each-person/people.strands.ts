@@ -1,6 +1,7 @@
 import { SVG_NS, one } from '../../motion/dom';
+import { stitch } from '../../motion/thread';
 import type { Card } from './people.card';
-import { DRAW, ENTRY, HALF, JOIN, LINKS, RAIL, STRAND, STRANDS, TRUNK } from './people.tuning';
+import { DRAW, ENTRY, HALF, JOIN, LINKS, RAIL, STRAND, STRANDS } from './people.tuning';
 
 export interface Threads {
   svg: SVGSVGElement;
@@ -9,6 +10,7 @@ export interface Threads {
   tails: SVGPathElement[];
   links: SVGPathElement[];
   trunk: SVGPathElement;
+  trunkTop: number;
   bead: SVGCircleElement | null;
 }
 
@@ -53,6 +55,7 @@ export function buildThreads(root: HTMLElement, phone: boolean): Threads {
     tails,
     links,
     trunk: strandIn(svg, 'people-trunk'),
+    trunkTop: 0,
     bead,
   };
 }
@@ -64,19 +67,10 @@ export function renderEntry(threads: Threads, progress: number, curves: Curves):
   );
 }
 
-export function renderJoin(
-  threads: Threads,
-  phone: boolean,
-  progress: number,
-  curves: Curves,
-): void {
+export function renderJoin(threads: Threads, progress: number, curves: Curves): void {
   threads.tails.forEach((node, index) =>
     drawStroke(node, curves.inOut(clamp((progress - index * JOIN.stagger) / JOIN.span))),
   );
-  const trunkFrom = phone ? TRUNK.phoneFrom : TRUNK.deskFrom;
-  const trunkSpan = phone ? TRUNK.phoneSpan : TRUNK.deskSpan;
-
-  drawStroke(threads.trunk, curves.inOut(clamp((progress - trunkFrom) / trunkSpan)));
   const radius = JOIN.beadRadius * curves.back(clamp((progress - JOIN.beadAt) / JOIN.beadSpan));
 
   threads.bead?.setAttribute('r', String(radius));
@@ -110,9 +104,8 @@ export function measureCards(root: HTMLElement, cards: Card[]): void {
 
 export function measureThreads(
   threads: Threads,
-  root: HTMLElement,
   cards: Card[],
-  phone: boolean,
+  { root, phone, entry }: { root: HTMLElement; phone: boolean; entry?: number },
 ): void {
   const width = root.offsetWidth;
   const height = root.offsetHeight;
@@ -120,7 +113,7 @@ export function measureThreads(
   threads.svg.setAttribute('width', String(width));
   threads.svg.setAttribute('height', String(height));
   threads.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  const geometry = { middle: width * HALF, height, cards, root };
+  const geometry = { middle: width * HALF, entry: entry ?? width * HALF, height, cards, root };
 
   if (phone) {
     placeRail(threads, geometry, width);
@@ -133,19 +126,21 @@ export function measureThreads(
 
 interface Geometry {
   middle: number;
+  entry: number;
   height: number;
   cards: Card[];
   root: HTMLElement;
 }
 
 function placeRail(threads: Threads, geometry: Geometry, width: number): void {
-  const { middle, height, cards } = geometry;
+  const { middle, entry, height, cards } = geometry;
   const rail = width - RAIL.inset;
   const [cardLeft, cardTop] = cards[0].state.top;
+  const last = cards[STRANDS - 1].state.bottom;
 
   threads.stem.setAttribute(
     'd',
-    `M${middle},0 C${middle},${RAIL.dropA} ${rail},${RAIL.dropB} ${rail},${RAIL.dropC} L${rail},${cardTop - RAIL.lift} C${rail},${cardTop - RAIL.lowerA} ${cardLeft},${cardTop - RAIL.lowerB} ${cardLeft},${cardTop}`,
+    `M${entry},0 ${stitch([entry, 0], [rail, RAIL.reach])} L${rail},${cardTop - RAIL.lift} C${rail},${cardTop - RAIL.lowerA} ${cardLeft},${cardTop - RAIL.lowerB} ${cardLeft},${cardTop}`,
   );
   threads.links.forEach((node, index) =>
     node.setAttribute(
@@ -153,19 +148,17 @@ function placeRail(threads: Threads, geometry: Geometry, width: number): void {
       `M${cards[index].state.bottom.join(',')} L${cards[index + 1].state.top.join(',')}`,
     ),
   );
-  threads.trunk.setAttribute(
-    'd',
-    `M${cards[STRANDS - 1].state.bottom.join(',')} L${middle},${height}`,
-  );
+  threads.trunk.setAttribute('d', `M${last.join(',')} ${stitch(last, [middle, height])}`);
+  threads.trunkTop = last[1];
 }
 
 function placeStrands(threads: Threads, geometry: Geometry): void {
-  const { middle, height, cards, root } = geometry;
+  const { middle, entry, height, cards, root } = geometry;
   const cardTop = cards[0].state.top[1];
   const head = placeOf(one(root, '.people-head'), root);
   const stemY = cardTop - (cardTop - head.top - head.height) * STRAND.stemShare;
 
-  threads.stem.setAttribute('d', `M${middle},0 L${middle},${stemY}`);
+  threads.stem.setAttribute('d', `M${entry},0 ${stitch([entry, 0], [middle, stemY])}`);
   threads.strands.forEach((node, index) => {
     const [cardLeft, cardY] = cards[index].state.top;
     const pull = (cardY - stemY) * STRAND.pull;
@@ -188,6 +181,7 @@ function placeStrands(threads: Threads, geometry: Geometry): void {
     );
   });
   threads.trunk.setAttribute('d', `M${middle},${joinY} L${middle},${height}`);
+  threads.trunkTop = joinY;
   threads.bead?.setAttribute('cx', String(middle));
   threads.bead?.setAttribute('cy', String(joinY));
 }

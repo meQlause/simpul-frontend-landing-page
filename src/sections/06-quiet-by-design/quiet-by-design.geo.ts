@@ -1,5 +1,6 @@
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { poseAt, stepAt, type Plan, type Pose } from './heap';
+import { stitch } from '../../motion/thread';
 import type { Board, Layout, Role, Window } from './quiet-by-design.scene';
 import {
   FLOOR_INSET,
@@ -64,7 +65,7 @@ function rideOf(thread: Thread): string {
   const top = final.y + Hp / 2;
 
   if (phone) {
-    return `M${tx},${top} L${mid},${H}`;
+    return `M${tx},${top} ${stitch([tx, top], [mid, H])}`;
   }
 
   const low = final.y + Hp;
@@ -79,25 +80,35 @@ function intoOf(thread: Thread): string {
   if (phone) {
     const rail = W - PHONE.inset;
 
-    return `M${mid},0 C${mid},${PHONE.bend} ${rail},${PHONE.top} ${rail},${PHONE.rail} L${rail},${top - PHONE.hop} C${rail},${top - PHONE.handle} ${tx},${top - PHONE.reach} ${tx},${top}`;
+    return `M${mid},0 ${stitch([mid, 0], [rail, PHONE.drop])} L${rail},${top - PHONE.hop} C${rail},${top - PHONE.handle} ${tx},${top - PHONE.reach} ${tx},${top}`;
   }
 
   return `M${mid},0 C${mid},${top * INTO.bend} ${tx},${top * INTO.handle} ${tx},${top}`;
 }
 
-function drawThread(board: Board, thread: Thread): string {
+function drawThread(board: Board, thread: Thread): { ride: string; into: Layout['into'] } {
   const ride = rideOf(thread);
+  const into = intoOf(thread);
   const { W, H, Hp, tx, final } = thread;
+  const intoRaw = MotionPathPlugin.getRawPath(into);
 
   board.thread.setAttribute(
     'd',
-    `${intoOf(thread)} L${tx},${final.y + Hp / 2} ${ride.replace(/^M[^LC]+/, '')}`,
+    `${into} L${tx},${final.y + Hp / 2} ${ride.replace(/^M[^LC]+/, '')}`,
   );
   board.svg.setAttribute('width', String(W));
   board.svg.setAttribute('height', String(H));
   board.svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  MotionPathPlugin.cacheRawPathMeasurements(intoRaw);
 
-  return ride;
+  return {
+    ride,
+    into: {
+      top: thread.top,
+      length: (intoRaw as unknown as { totalLength: number }).totalLength,
+      total: board.thread.getTotalLength(),
+    },
+  };
 }
 
 function windowsOf(
@@ -201,7 +212,7 @@ export function measureLayout(board: Board, phone: boolean): Layout {
     top: panelBox.y,
     final,
   };
-  const ride = drawThread(board, thread);
+  const { ride, into } = drawThread(board, thread);
 
   Object.assign(survivor.dataset, { exitX: thread.mid, exitY: sizes.H, exitAngle: 0 });
   const windows = windowsOf(centres, viewHeight, phone ? WINDOW.phone : WINDOW.desktop);
@@ -215,6 +226,7 @@ export function measureLayout(board: Board, phone: boolean): Layout {
     knots: knotsOf(stageBox, viewHeight, windows),
     release,
     rideRaw: MotionPathPlugin.getRawPath(ride),
+    into,
     rise: riseOf(windows, viewHeight, release),
   };
 }

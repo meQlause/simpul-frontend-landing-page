@@ -5,14 +5,6 @@ export const MS_PER_SECOND = 1000;
 export const DOCK = { edge: 24, drop: 3 };
 
 export const ROUTE = {
-  climbAbove: 90,
-  climbLift: 70,
-  bend: 30,
-  lift: 70,
-  reachBelow: 50,
-  reachSide: 40,
-  reachOver: 120,
-  reachDip: 60,
   onBend: 30,
   onLift: 70,
   onFoot: 110,

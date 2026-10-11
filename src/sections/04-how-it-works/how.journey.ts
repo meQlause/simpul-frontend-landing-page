@@ -8,7 +8,6 @@ import {
   DOCK,
   ENTRY,
   EVIDENCE,
-  EXIT,
   FIT,
   GREEN,
   HALF,
@@ -289,11 +288,15 @@ function drawPaths(
   },
 ): void {
   const out = one(trip.root, '[data-thread-out]').getBoundingClientRect();
-  const outX = out.left - paths.stageLeft + paths.view.phone;
   const outY = out.top - trip.stage.getBoundingClientRect().top;
-  const phoneX = paths.phone.x;
-  const bottom = paths.phone.y + paths.phone.h;
-  const exitD = `M${phoneX},${bottom} C${phoneX},${outY - EXIT.lift} ${outX},${bottom + EXIT.drop} ${outX},${outY}`;
+  const phoneX = paths.phone.cx;
+  const exitD = `M${phoneX},${paths.phone.y + paths.phone.h} L${phoneX},${outY}`;
+
+  Object.assign(trip.order.dataset, {
+    exitX: phoneX - paths.view.phone + paths.stageLeft - trip.root.getBoundingClientRect().left,
+    exitY: trip.root.offsetHeight,
+    exitAngle: 0,
+  });
 
   trip.svg.setAttribute('width', String(paths.width));
   trip.svg.setAttribute('viewBox', `0 0 ${paths.width} ${paths.height}`);

@@ -33,6 +33,7 @@ export interface Layout extends Geo {
   knots: [number, number][];
   release: number;
   rideRaw: RawPath;
+  into: { top: number; length: number; total: number };
   rise: [number, number];
   rest: number;
   fold: [number, number];

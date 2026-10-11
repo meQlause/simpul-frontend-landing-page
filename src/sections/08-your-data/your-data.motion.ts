@@ -2,6 +2,7 @@ import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { SplitText } from 'gsap/SplitText';
 import { all, one, SVG_NS, segment } from '../../motion/dom';
+import { SEAM, stitch } from '../../motion/thread';
 import type { SectionMotion, Shared } from '../../motion/types';
 import {
   BIT,
@@ -62,6 +63,7 @@ interface Lay {
 
 interface Scene {
   root: HTMLElement;
+  handoff: Shared['handoff'];
   phone: boolean;
   curves: { inOut: Curve; out: Curve; land: Curve };
   clock: { p: number };
@@ -74,6 +76,7 @@ interface Scene {
   right: Lines;
   left: Lines & { down: SVGPathElement };
   bits: SVGRectElement[];
+  tail: SVGPathElement;
   end: SVGCircleElement;
   kept: Kept[];
   layers: Layer[];
@@ -128,11 +131,13 @@ function drawingOf(root: HTMLElement, bitCount: number) {
   const right = { in: pathIn(svg), out: pathIn(svg) };
   const left = { in: pathIn(svg), down: pathIn(svg), out: pathIn(svg) };
   const bits = Array.from({ length: bitCount }, () => squareIn(svg));
+  const tail = pathIn(svg);
   const end = svg.appendChild(document.createElementNS(SVG_NS, 'circle'));
 
   end.setAttribute('r', String(KNOT.radius));
+  end.dataset.handoffObject = '';
 
-  return { svg, stem, right, left, bits, end };
+  return { svg, stem, right, left, bits, tail, end };
 }
 
 function keptOf(root: HTMLElement): Kept[] {
@@ -175,6 +180,7 @@ function buildScene(root: HTMLElement, shared: Shared): Scene {
 
   return {
     root,
+    handoff: shared.handoff,
     phone: conditions.phone,
     curves: {
       inOut: gsap.parseEase('power2.inOut'),
@@ -277,18 +283,22 @@ function boxIn(root: HTMLElement, node: Element) {
 }
 
 function tieAt(scene: Scene, posX: number, posY: number): void {
+  const height = scene.root.offsetHeight;
+
   scene.end.setAttribute('cx', String(posX));
   scene.end.setAttribute('cy', String(posY));
+  scene.tail.setAttribute('d', `M${posX},${posY} L${posX},${height}`);
+  Object.assign(scene.end.dataset, { exitX: posX, exitY: height, exitAngle: 0 });
 }
 
 function measureRail(scene: Scene, width: number, height: number): void {
-  const mid = width / 2;
+  const entry = scene.handoff.incoming(scene.root)?.x ?? width / 2;
   const rail = width - RAIL.inset;
   const foot = height - RAIL.foot;
 
   scene.stem.setAttribute(
     'd',
-    `M${mid},0 C${mid},${RAIL.first} ${rail},${RAIL.second} ${rail},${RAIL.reach} L${rail},${foot}`,
+    `M${entry},0 ${stitch([entry, 0], [rail, RAIL.reach])} L${rail},${foot}`,
   );
   tieAt(scene, rail, foot);
 }
@@ -496,6 +506,21 @@ function followScroll(scene: Scene, shared: Shared): () => void {
     ease: 'none',
     onUpdate: () => render(scene),
     scrollTrigger: { trigger: scene.root, start: 'top 70%', end: 'bottom 98%', scrub: 0.6 },
+  });
+  const seam = { share: 0 };
+
+  drawLine(scene.tail, 0);
+  gsap.to(seam, {
+    share: 1,
+    ease: 'none',
+    onUpdate: () => drawLine(scene.tail, seam.share),
+    scrollTrigger: {
+      trigger: scene.root,
+      start: () => `top+=${scene.end.cy.baseVal.value} ${SEAM.line}`,
+      end: `bottom ${SEAM.line}`,
+      scrub: SEAM.scrub,
+      invalidateOnRefresh: true,
+    },
   });
   const onRefresh = () => {
     measure(scene);
