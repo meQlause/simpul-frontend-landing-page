@@ -12,6 +12,19 @@ if (!html.includes(PLACEHOLDER)) {
   throw new Error(`dist/index.html has no ${PLACEHOLDER}`);
 }
 
-await writeFile(page, html.replace(PLACEHOLDER, render()));
+// Defer the full stylesheet so the inline loading screen can paint on a slow connection.
+const deferred = html.replaceAll(
+  /<link\b[^>]*rel="stylesheet"[^>]*>/g,
+  (link) =>
+    link.replace(
+      'rel="stylesheet"',
+      'rel="stylesheet" media="print" data-page-styles onload="this.media=\'all\'" onerror="this.dataset.failed=\'true\';document.dispatchEvent(new Event(\'page-load-error\'))"',
+    ) +
+    '<noscript>' +
+    link +
+    '</noscript>',
+);
+
+await writeFile(page, deferred.replace(PLACEHOLDER, render()));
 await rm(new URL('server/', dist), { recursive: true });
 console.log('Prerendered dist/index.html');

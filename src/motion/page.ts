@@ -66,7 +66,7 @@ function smoothScroll(reduce: boolean): ScrollSmoother | null {
     content: '#smooth-content',
     smooth: scroll.smooth,
     smoothTouch: scroll.touch,
-    normalizeScroll: true,
+    normalizeScroll: { wheelSpeed: scroll.speed },
     effects: false,
   });
 }

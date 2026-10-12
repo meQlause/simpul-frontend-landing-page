@@ -26,7 +26,14 @@ export const TAKES = 0.15;
 
 export const DRAW = { stemTo: 0.1, forkFrom: 0.08, tieFrom: 0.97, tieTo: 0.98 };
 
-export const FLOW = { laps: 7, from: 0.16, stop: 0.06, fadeIn: 0.12, fadeOut: 0.88 };
+export const FLOW = {
+  laps: 7,
+  from: 0.16,
+  stop: 0.06,
+  fadeIn: 0.12,
+  fadeOut: 0.88,
+  maxStep: 0.025,
+};
 
 export const LINE = { hidden: 0.002 };
 

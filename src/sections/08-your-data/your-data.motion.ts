@@ -67,6 +67,7 @@ interface Scene {
   phone: boolean;
   curves: { inOut: Curve; out: Curve; land: Curve };
   clock: { p: number };
+  flow: { at: number; p: number };
   splits: SplitText[];
   chapter: HTMLElement;
   chapterText: string;
@@ -188,6 +189,7 @@ function buildScene(root: HTMLElement, shared: Shared): Scene {
       land: gsap.parseEase('back.out(1.6)'),
     },
     clock: { p: 0 },
+    flow: { at: 0, p: 0 },
     splits: [],
     chapter,
     chapterText: chapter.textContent ?? '',
@@ -418,12 +420,24 @@ function landKept(scene: Scene, tip: number): void {
   });
 }
 
+// A fast scroll speeds the bits up instead of letting them jump a whole spacing per frame.
+function flowOf(scene: Scene, progress: number): number {
+  const { flow } = scene;
+  const step = (progress - flow.p) * FLOW.laps;
+
+  flow.p = progress;
+  flow.at += Math.max(-FLOW.maxStep, Math.min(FLOW.maxStep, step));
+
+  return flow.at;
+}
+
 function runBits(scene: Scene, progress: number): void {
   const flowing =
     segment(progress, FLOW.from, FORKED) * (1 - segment(progress, FULL - FLOW.stop, FULL));
+  const along = flowOf(scene, progress);
 
   scene.bits.forEach((bit, index) => {
-    const time = (progress * FLOW.laps + index / BITS) % 1;
+    const time = (((along + index / BITS) % 1) + 1) % 1;
     const spot = MotionPathPlugin.getPositionOnPath(scene.route.flow, time);
 
     bit.setAttribute('x', String(spot.x - BIT.half));

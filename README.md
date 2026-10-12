@@ -32,6 +32,17 @@ React renders the markup once. After mount the DOM belongs to GSAP, which is why
 components hold no state and never re-render. `startPage` runs every section's `init(root, shared)`
 in page order inside one `gsap.matchMedia`, exactly as the vanilla `main.js` does.
 
+An inline SVG loader paints before the application stylesheet and scripts arrive. Its progress
+tracks completed asset tasks: panel screenshots and the logo are decoded, fonts are loaded, and
+motion modules are ready before the page opens. Failed loads offer a retry; without JavaScript,
+the prerendered page remains readable. Reduced motion skips the loader's animation.
+
+Scroll scenes initialize behind the opaque loader at the final viewport width, with the scrollbar
+already restored. A synchronous ScrollTrigger refresh aligns every hand-off before the loader
+fades and scrolling unlocks. Screenshots load eagerly, including the captures used only inside
+the animated window. Wheel and trackpad scroll distance is set to 35% of the native rate, with
+2-second desktop smoothing and 0.35-second touch smoothing.
+
 The toolchain (`eslint.config.mjs`, `knip.json`, Prettier, commitlint, husky) is pspt's canonical
 React set, byte for byte the same as `../frontend`. Never edit those files.
 

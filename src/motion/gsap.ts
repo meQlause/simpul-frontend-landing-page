@@ -14,7 +14,7 @@ export const ease = { out: 'power3.out', long: 'expo.out', inOut: 'power2.inOut'
 
 export const duration = { quick: 0.4, base: 0.8, slow: 1.4 };
 
-export const scroll = { smooth: 1.2, touch: 0.1 };
+export const scroll = { speed: 0.35, smooth: 2, touch: 0.35 };
 
 gsap.defaults({ ease: ease.out, duration: duration.base });
 

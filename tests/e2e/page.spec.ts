@@ -47,3 +47,33 @@ test('the whole page scrolls as one unit, through one smoother', async ({ page }
     )
     .toBe('fixed');
 });
+
+test('scrolling waits for every screenshot to load and decode', async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  await page.route('**/*.webp', async (route) => {
+    await pending;
+    await route.continue();
+  });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('html')).toHaveAttribute('data-page-ready', 'false');
+  await page.mouse.wheel(0, 700);
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  release();
+  await expect(page.locator('html')).toHaveAttribute('data-page-ready', 'true');
+  expect(
+    await page
+      .locator('img')
+      .evaluateAll((images) =>
+        images.every(
+          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+        ),
+      ),
+  ).toBe(true);
+  expect(await page.evaluate(() => document.fonts.status)).toBe('loaded');
+  await page.mouse.wheel(0, 700);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
+});

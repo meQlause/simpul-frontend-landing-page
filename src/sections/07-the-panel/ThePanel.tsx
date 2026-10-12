@@ -38,7 +38,7 @@ export function ThePanel() {
             src={home}
             width="1200"
             height="660"
-            loading="lazy"
+            loading="eager"
             alt="The panel’s home screen. It greets Siti and shows the team’s information flow, with Mrs. Sri’s order ORD-0091 ready to ship."
           />
           <h3>
@@ -51,7 +51,7 @@ export function ThePanel() {
             src={attention}
             width="1200"
             height="660"
-            loading="lazy"
+            loading="eager"
             alt="The same screen further down: 1,284 messages understood, 48 active work items, 156 updates delivered, 7 needing attention, and three areas to review numbered 04, 02 and 01."
           />
           <h3>
@@ -64,7 +64,7 @@ export function ThePanel() {
             src={rule}
             width="1200"
             height="660"
-            loading="lazy"
+            loading="eager"
             alt="A notification rule being created: the recipient is Rina Anggraini in Sales, and the preview shows 4 matching updates from the last 30 days."
           />
           <h3>

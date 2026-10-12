@@ -10,9 +10,172 @@
     />
     <title>Simpul — Busy conversations. Clear next steps.</title>
     <link rel="icon" type="image/png" href="/simpul-mark.png" />
-    <!-- Until the hero's opening has run, what it reveals stays hidden. Only if the script never runs
-         does the timeout show it anyway. -->
+    <!-- Critical loader styles stay inline so the first paint needs no downloaded asset. -->
     <style>
+      html.page-loading:not(.page-revealing) {
+        overflow: hidden;
+      }
+      html.page-loading {
+        background: #f8f9f6;
+      }
+      .page-loading body {
+        margin: 0;
+      }
+      .page-loading .skip-link {
+        visibility: hidden;
+      }
+      .page-loading:not(.page-revealing) #smooth-wrapper {
+        visibility: hidden;
+      }
+      #page-loader {
+        display: none;
+      }
+      .page-loading #page-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #f8f9f6;
+        color: #163f32;
+        font-family: 'Manrope Variable', 'Manrope', Arial, sans-serif;
+      }
+      .loader-wash {
+        position: absolute;
+        width: min(850px, 150vw);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle, #edf4e7 0%, #f8f9f6 67%);
+        pointer-events: none;
+      }
+      .loader-content {
+        position: relative;
+        width: min(360px, calc(100vw - 64px));
+        text-align: center;
+      }
+      .loader-mark {
+        width: 86px;
+        height: 86px;
+        margin: 0 auto 10px;
+      }
+      .loader-wordmark {
+        margin: 0;
+        font-size: 54px;
+        font-weight: 650;
+        letter-spacing: -3px;
+        line-height: 1.1;
+      }
+      .loader-wordmark span {
+        color: #71a977;
+      }
+      .loader-thread {
+        display: block;
+        width: 100%;
+        height: 80px;
+        margin: 26px 0 16px;
+        overflow: visible;
+      }
+      .loader-thread path {
+        fill: none;
+        stroke-linecap: round;
+        stroke-width: 1.4;
+      }
+      .loader-thread-track {
+        stroke: #dae5d4;
+      }
+      .loader-thread-flow {
+        stroke: #6a9658;
+        stroke-dasharray: 0.12 0.88;
+        animation: loader-flow 3s linear infinite;
+      }
+      .loader-caption {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        font:
+          12px/1.5 'DM Sans Variable',
+          Arial,
+          sans-serif;
+        color: #5d6f63;
+      }
+      #loader-status {
+        margin: 0;
+        text-align: left;
+      }
+      #loader-percent {
+        font-variant-numeric: tabular-nums;
+        color: #176448;
+      }
+      .loader-progress {
+        height: 2px;
+        margin-top: 13px;
+        background: #dae5d4;
+        overflow: hidden;
+      }
+      .loader-progress-fill {
+        height: 100%;
+        background: #176448;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 240ms ease-out;
+      }
+      .loader-foot {
+        position: absolute;
+        bottom: clamp(26px, 5vh, 52px);
+        left: 24px;
+        right: 24px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        align-items: center;
+        color: #6a7e6a;
+        font:
+          10px/1.6 'DM Sans Variable',
+          Arial,
+          sans-serif;
+        letter-spacing: 1.3px;
+        text-transform: uppercase;
+      }
+      .loader-foot i {
+        display: block;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: #71a977;
+      }
+      #loader-retry {
+        margin-top: 24px;
+        padding: 10px 22px;
+        color: #176448;
+        background: transparent;
+        border: 1px solid #b9cbb6;
+        border-radius: 8px;
+        font:
+          13px/1.5 Arial,
+          sans-serif;
+        cursor: pointer;
+      }
+      #loader-retry:focus-visible {
+        outline: 2px solid #176448;
+        outline-offset: 4px;
+      }
+      @keyframes loader-flow {
+        to {
+          stroke-dashoffset: -1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loader-thread-flow {
+          animation: none;
+          stroke-dasharray: none;
+        }
+        .loader-progress-fill {
+          transition: none;
+        }
+      }
+
       @media (prefers-reduced-motion: no-preference) {
         .hero-boot .hero-lockup,
         .hero-boot .hero-heading-line,
@@ -24,14 +187,101 @@
       }
     </style>
     <script>
+      document.documentElement.classList.add('page-loading');
+      document.documentElement.dataset.pageReady = 'false';
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
         document.documentElement.classList.add('hero-boot');
-        setTimeout(() => document.documentElement.classList.remove('hero-boot'), 9000);
       }
+      const loadingInput = new AbortController();
+      const lockOptions = { capture: true, passive: false, signal: loadingInput.signal };
+      const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '];
+      const blockLoadingScroll = (event) => {
+        if (event.type === 'keydown' && !scrollKeys.includes(event.key)) return;
+        if (event.target instanceof Element && event.target.closest('#loader-retry')) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      ['wheel', 'touchmove', 'keydown'].forEach((type) =>
+        window.addEventListener(type, blockLoadingScroll, lockOptions),
+      );
+      document.addEventListener('page-load-ready', () => loadingInput.abort(), { once: true });
+      function loadingFailed() {
+        if (document.documentElement.dataset.pageReady === 'true') return;
+        const status = document.getElementById('loader-status');
+        if (!status) {
+          document.addEventListener('DOMContentLoaded', loadingFailed, { once: true });
+          return;
+        }
+        status.textContent = 'The page could not finish loading.';
+        document.getElementById('loader-retry').hidden = false;
+      }
+      document.addEventListener('page-load-error', loadingFailed);
+      window.addEventListener(
+        'error',
+        (event) => {
+          if (event.target instanceof HTMLScriptElement) loadingFailed();
+        },
+        true,
+      );
+      document.addEventListener('click', (event) => {
+        if (event.target.closest('#loader-retry')) location.reload();
+      });
+      setTimeout(() => {
+        if (document.documentElement.dataset.pageReady === 'true') return;
+        document.getElementById('loader-status').textContent =
+          'This is taking longer than expected.';
+        document.getElementById('loader-retry').hidden = false;
+      }, 30000);
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </head>
   <body>
+    <div id="page-loader" aria-label="Loading Simpul">
+      <div class="loader-wash" aria-hidden="true"></div>
+      <div class="loader-content">
+        <svg class="loader-mark" viewBox="0 0 1254 1254" aria-hidden="true">
+          <path
+            fill="#176448"
+            d="M 788 189.002 C 724.347 192.557, 660.769 221.126, 609.098 269.392 C 595.397 282.190, 564.616 311.414, 560.515 315.517 C 558.307 317.727, 544.352 331.002, 529.505 345.017 C 514.658 359.033, 500.033 372.980, 497.005 376.012 C 493.977 379.044, 463.301 408.641, 428.835 441.785 C 349.015 518.542, 342.568 525.936, 325.135 560.719 C 305.037 600.819, 299.522 651.492, 310.552 694.715 C 315.811 715.322, 322.262 729.829, 333.859 747.120 C 344.531 763.032, 351.199 770.158, 388.216 805.217 C 407.072 823.075, 440.275 855.197, 462 876.599 L 501.500 915.512 512 920.714 C 526.459 927.876, 532.747 929.403, 548 929.453 C 561.795 929.499, 569.649 927.930, 580.846 922.893 C 610.495 909.556, 628.716 876.859, 622.584 848 C 618.573 829.124, 615.230 825.158, 547.108 758.468 C 515.142 727.174, 487.248 699.080, 485.122 696.035 C 466.716 669.689, 466.227 640.590, 483.787 616.619 C 486.889 612.385, 527.916 573.319, 613.500 493.108 C 626.150 481.252, 641.450 466.785, 647.500 460.958 C 653.550 455.132, 664.800 444.559, 672.500 437.463 C 680.200 430.367, 692.575 418.866, 700 411.906 C 719.677 393.459, 724.496 389.389, 734.500 382.766 C 774.480 356.298, 816.926 354.301, 847.706 377.438 C 881.494 402.837, 886.532 451.738, 858.573 482.919 C 847.765 494.972, 845.631 504.576, 851.526 514.635 C 864.474 536.728, 903.552 530.642, 938.203 501.137 C 990.404 456.688, 1012.498 381.055, 992.103 316.621 C 966.081 234.411, 884.809 183.595, 788 189.002"
+          />
+          <path
+            fill="#6a9658"
+            d="M 725.660 494.984 C 669.902 505.079, 635.947 563.062, 658.599 609.500 C 663.388 619.320, 670.866 627.582, 699.500 654.699 C 771.470 722.853, 785.540 737.037, 792.083 748.033 C 799.373 760.284, 801.385 767.693, 801.446 782.500 C 801.506 796.952, 800.518 801.170, 794.238 813.278 C 788.608 824.134, 783.028 829.667, 745.960 861.150 C 737.963 867.943, 722.468 881.150, 711.526 890.500 C 700.585 899.850, 687.103 911.295, 681.566 915.934 C 670.181 925.473, 649.289 943.236, 631.500 958.501 C 594.960 989.857, 584.172 998.027, 569.821 1005.210 C 515.340 1032.478, 446.664 1006.827, 428.140 952.290 C 423.115 937.496, 422.837 920.218, 427.414 907.075 C 433.648 889.175, 426.616 874.824, 409.058 869.610 C 371.222 858.374, 323.233 906.695, 314.465 964.857 C 297.890 1074.814, 399.055 1170.116, 532.211 1169.983 C 603.477 1169.911, 663.507 1145.923, 725 1092.942 C 730.225 1088.440, 738.325 1081.567, 743 1077.667 C 747.675 1073.768, 754.425 1067.995, 758 1064.838 C 761.575 1061.681, 782.275 1043.954, 804 1025.445 C 851.982 984.567, 859.742 977.921, 866.994 971.500 C 870.100 968.750, 877.980 962, 884.506 956.500 C 905.676 938.657, 927.016 918.912, 935.194 909.603 C 989.643 847.617, 995.654 761.664, 950.878 685.329 C 939.296 665.583, 927.434 651.673, 887.491 611 C 877.499 600.825, 852.999 575.625, 833.046 555 C 786.969 507.369, 779.921 501.728, 760 496.539 C 752.518 494.590, 732.774 493.696, 725.660 494.984"
+          />
+        </svg>
+        <p class="loader-wordmark" aria-hidden="true">simpul<span>.</span></p>
+        <svg class="loader-thread" viewBox="0 0 360 80" aria-hidden="true">
+          <path
+            class="loader-thread-track"
+            pathLength="1"
+            d="M0 40H100C132 40 142 12 166 12C197 12 213 68 184 68C153 68 167 40 204 40H360"
+          />
+          <path
+            class="loader-thread-flow"
+            pathLength="1"
+            d="M0 40H100C132 40 142 12 166 12C197 12 213 68 184 68C153 68 167 40 204 40H360"
+          />
+        </svg>
+        <div class="loader-caption">
+          <p id="loader-status" role="status" aria-live="polite">Bringing it together</p>
+          <span id="loader-percent" aria-hidden="true">0%</span>
+        </div>
+        <div
+          class="loader-progress"
+          role="progressbar"
+          aria-label="Loading page"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <div class="loader-progress-fill"></div>
+        </div>
+        <button id="loader-retry" type="button" hidden>Try again</button>
+      </div>
+      <div class="loader-foot" aria-hidden="true">
+        <span>Busy conversations</span><i></i><span>Clear next steps</span>
+      </div>
+    </div>
     <a class="skip-link" href="#page">Skip to content</a>
     <!-- One scroll for the whole page: ScrollSmoother moves #smooth-content inside #smooth-wrapper,
          and every section's ScrollTrigger runs on that one clock. -->
@@ -43,5 +293,8 @@
         </main>
       </div>
     </div>
+    <script>
+      document.getElementById('smooth-wrapper').inert = true;
+    </script>
   </body>
 </html>
