@@ -6,6 +6,8 @@ const STATUS = `${SECTION} [data-status]`;
 const FIELD = `${SECTION} #join-email`;
 
 async function submit(page: import('@playwright/test').Page, email: string) {
+  // The form is wired when the page opens; until then the loader covers it.
+  await expect(page.locator('html')).not.toHaveClass(/page-loading/, { timeout: LOAD_MS });
   await page.locator(FIELD).fill(email);
   await page.locator(FIELD).press('Enter');
 }

@@ -15,6 +15,7 @@ test('the hero is hidden until its opening reveals it, on every load', async ({ 
 
 test('Watch the video opens the film, and Escape closes it', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('html')).not.toHaveClass(/page-loading/, { timeout: OPENING_MS });
   await expect(page.locator('html')).not.toHaveClass(/hero-boot/, { timeout: OPENING_MS });
   const film = page.locator('dialog.film');
 
@@ -26,6 +27,7 @@ test('Watch the video opens the film, and Escape closes it', async ({ page }) =>
 
 test('See how it works moves the page down', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('html')).not.toHaveClass(/page-loading/, { timeout: OPENING_MS });
   await expect(page.locator('html')).not.toHaveClass(/hero-boot/, { timeout: OPENING_MS });
   const before = await page.evaluate(() => scrollY);
 
