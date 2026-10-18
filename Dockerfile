@@ -3,6 +3,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 COPY . .
+# The film is not in git (public/film is ignored); it is served from Cloud Storage.
+ARG VITE_FILM_URL
+ENV VITE_FILM_URL=$VITE_FILM_URL
 RUN npm run build
 
 FROM nginx:1.29-alpine

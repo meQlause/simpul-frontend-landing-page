@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGION: ${{ vars.GCP_REGION }}
+      VITE_FILM_URL: ${{ vars.VITE_FILM_URL }}
       IMAGE: ${{ vars.GCP_IMAGE_REPOSITORY }}/landing:${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v7.0.1
@@ -38,7 +39,7 @@ jobs:
       - name: Build and push the image
         run: |
           gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
-          docker build -t "$IMAGE" .
+          docker build --build-arg VITE_FILM_URL="$VITE_FILM_URL" -t "$IMAGE" .
           docker push "$IMAGE"
       - name: Deploy landing
         run: gcloud run deploy landing --region="$REGION" --image="$IMAGE"
