@@ -37,7 +37,7 @@ export function HeroIllustration() {
         <span className="hero-chat-meta">
           <i>R</i> Rina <span>09:41</span>
         </span>
-        <p>Pembayaran Bu Sri sudah masuk.</p>
+        <p>Mrs. Sri’s payment is in.</p>
         <span className="hero-chat-tag">
           ORD-0091 <b>↗</b>
         </span>
@@ -46,20 +46,20 @@ export function HeroIllustration() {
         <span className="hero-chat-meta">
           <i>B</i> Budi <span>09:42</span>
         </span>
-        <p>Siap dikirim sore ini.</p>
+        <p>Ready to ship this afternoon.</p>
         <span className="hero-chat-tag">
-          Pengiriman <b>↗</b>
+          Shipping <b>↗</b>
         </span>
       </div>
       <div className="hero-chat hero-chat--three">
         <span className="hero-chat-meta">
           <i>S</i> Siti <span>09:43</span>
         </span>
-        <p>yg kemarin gimana?</p>
+        <p>what about yesterday’s?</p>
       </div>
       <div className="hero-chat hero-chat--four">
         <p>
-          udah?? <span>09:44</span>
+          done?? <span>09:44</span>
         </p>
       </div>
     </div>

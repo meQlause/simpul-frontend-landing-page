@@ -1,6 +1,6 @@
 export const HALF = 0.5;
 
-export const QUESTIONS = ['udah?', 'udah??', 'yg kemarin gimana?'];
+export const QUESTIONS = ['done?', 'done??', 'what about yesterday’s?'];
 
 export const HOPS = [
   { from: 1.2, to: 1.9 },

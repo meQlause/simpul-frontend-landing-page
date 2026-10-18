@@ -3,18 +3,18 @@ import type { Board, Feel, Note } from './quiet-by-design.scene';
 import { FEEL, HUE, LIMIT, RULE } from './quiet-by-design.tuning';
 
 const NOISE = [
-  ['GG', 'Grup Gudang', 'udah dikirim belum?', '3'],
-  ['ST', 'Sales Team', '@all tolong dicek ya', '12'],
-  ['FN', 'Finance', 'PENTING!! cek transfer', '!'],
-  ['RM', 'Reminder', 'follow up Bu Sri', '2'],
-  ['GK', 'Grup Kantor', 'pagi semua 🙏', '27'],
-  ['AD', 'Admin', 'yg kemarin gimana?', '5'],
-  ['BU', 'Budi', 'udah aku bilang kemarin', '1'],
-  ['PH', 'Pak Hendra', 'kok baru tau sekarang?', '1'],
-  ['SK', 'Stok', 'menipis: Aqua 600 ml', '9'],
-  ['RI', 'Rina', 'udah??', '4'],
+  ['WG', 'Warehouse group', 'shipped yet?', '3'],
+  ['ST', 'Sales Team', '@all please check', '12'],
+  ['FN', 'Finance', 'URGENT!! check the transfer', '!'],
+  ['RM', 'Reminder', 'follow up Mrs. Sri', '2'],
+  ['OG', 'Office group', 'morning all 🙏', '27'],
+  ['AD', 'Admin', 'what about yesterday’s?', '5'],
+  ['BU', 'Budi', 'told you yesterday', '1'],
+  ['MH', 'Mr. Hendra', 'why am I hearing this now?', '1'],
+  ['SK', 'Stock', 'running low: Aqua 600 ml', '9'],
+  ['RI', 'Rina', 'done??', '4'],
   ['OP', 'Ops', 'status ORD-0088?', '3'],
-  ['GG', 'Grup Gudang', 'foto barangnya dong', '6'],
+  ['WG', 'Warehouse group', 'photo of the goods pls', '6'],
 ];
 
 const CHIPS = [
@@ -65,7 +65,7 @@ function buildExtras(panel: HTMLElement, take: number[]) {
     'quiet-hold',
     '<svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="23"/><circle class="quiet-hold-ring" cx="28" cy="28" r="23" pathLength="1"/></svg><span><b>0</b>s</span>',
   );
-  const fix = addTo(panel, 'quiet-fix', 'eh salah, belum siap', 'p');
+  const fix = addTo(panel, 'quiet-fix', 'oops, not ready yet', 'p');
   const counter = addTo(panel, 'quiet-count', '<b>0</b><small>per hour</small>');
   const summary = addTo(
     panel,

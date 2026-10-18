@@ -68,7 +68,7 @@ function TurnMessages() {
             Rina <time>09:40</time>
           </small>
           <p>
-            pagi semua <span className="turn-sun">☀</span>
+            morning all <span className="turn-sun">☀</span>
           </p>
         </div>
       </li>
@@ -78,7 +78,7 @@ function TurnMessages() {
           <small>
             Rina <time>09:41</time>
           </small>
-          <p>Pembayaran Bu Sri sudah masuk.</p>
+          <p>Mrs. Sri’s payment is in.</p>
           <span className="turn-meaning">
             <b>↗</b> <span>Payment confirmed</span>
           </span>
@@ -99,7 +99,7 @@ function TurnMessages() {
           <small>
             Budi <time>09:44</time>
           </small>
-          <p>3 dus Bu Sri siap dikirim sore ini.</p>
+          <p>Mrs. Sri’s 3 boxes ship this afternoon.</p>
           <span className="turn-meaning">
             <b>↗</b> <span>Ready to ship · ORD-0091</span>
           </span>
@@ -110,7 +110,7 @@ function TurnMessages() {
           <small>
             You <time>09:44</time>
           </small>
-          <p>siap!</p>
+          <p>on it!</p>
         </div>
       </li>
       <li className="turn-msg turn-msg--voice" data-turn-message="">
@@ -134,7 +134,7 @@ function TurnMessages() {
           <small>
             Siti <time>09:46</time>
           </small>
-          <p>yg kemarin?</p>
+          <p>yesterday’s one?</p>
         </div>
       </li>
       <li className="turn-msg" data-turn-message="">
@@ -143,7 +143,7 @@ function TurnMessages() {
           <small>
             Mr. Hendra <time>09:47</time>
           </small>
-          <p>ok, makasih</p>
+          <p>ok, thanks</p>
         </div>
       </li>
     </ol>
